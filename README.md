@@ -1,2 +1,9 @@
-# MAST
-Mycobacteria Amplicon Sequencing Tool
+# Mycobacteria Amplicon Sequencing Tool (MAST)
+
+This tool is made with nextflow and is used for Mycobacteria AMR prediction.
+
+To run it, please specify the fastq file that is to be analyzed, and the output directory for the results.
+
+```
+Nextflow run mast_workflow.nf --data data.fq --output_dir outdir
+```
