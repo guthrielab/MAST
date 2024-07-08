@@ -141,10 +141,11 @@ process compareMutations {
     file mutations
     file data
     file output_dir
+    file reference
 
     script:
     """
-    python3 /Users/maximfedorov/Downloads/Lab/Summer_Project/Code/compare.py ${mutations} ${data.simpleName} ${output_dir}
+    python3 ./Code/compare.py ${mutations} ${data.simpleName} ${output_dir} ${reference}
     """
 }
 
@@ -160,5 +161,5 @@ workflow {
     variant_ch = runVariantCalling(sorted_ch, reference)
     raw_variant_ch = runFilterVariants(variant_ch)
     mutations_ch = runConvertToTSV(variant_ch)
-    compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.output_dir))
+    compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.output_dir), Channel.fromPath(params.reference))
 }
