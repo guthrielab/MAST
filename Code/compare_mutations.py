@@ -13,6 +13,7 @@ resistances = {}
 
 df = pd.read_csv(input_file, sep='\t')
 df_mutations = pd.read_csv('./Data/all_resistant_variants.csv')
+df_lineage = pd.read_csv('./Data/Lineage.csv')
 
 
 
@@ -32,6 +33,13 @@ for _, pos_row in df.iterrows():
             variant = range_row['variant']
             drug = range_row['drug']
             resistances[variant] = drug 
+
+for _, pos_row in df.iterrows():
+    match = find_matching_range(pos_row, df_lineage)
+    if match is not None:
+        for _, range_row in match.iterrows():
+            lineage = range_row['LIN']
+            resistances['lineage'] = lineage 
 
 
 
