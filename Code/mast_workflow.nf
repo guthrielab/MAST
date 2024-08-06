@@ -20,29 +20,6 @@ log.info"""\
         primers: $params.primers
         """
 
-process runTrimming {
-    input:
-    file fastq
-    file primers
-
-    output:
-    file 'trimmed_file.fastq.gz'
-
-    script:
-    """
-    cutadapt_options=""
-    options=(" -g" " -a")
-    index=0
-    while IFS= read -r line; do
-         cutadapt_options+="\${options[index]} \$line"
-         index=\$(( (index + 1) % \${#options[@]} ))
-    done < "$primers"
-
-    echo "Constructed cutadapt options: \$cutadapt_options" > test.txt
-
-    cutadapt \$cutadapt_options -o trimmed_file.fastq.gz $fastq
-    """
-}
 
 process runQualityTrimming {
     input:
