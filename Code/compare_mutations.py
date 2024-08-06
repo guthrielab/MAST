@@ -1,19 +1,20 @@
 import pandas as pd
 import sys
-import json
+import os
 from Bio import SeqIO
+from docx import Document
+from jinja2 import Template
 
 
 #Declaring inputs
 input_file = sys.argv[1]
 output_base_name = sys.argv[2]
-output_dir = sys.argv[3]
 fasta_file = sys.argv[4]
 resistances = {}
 
 df = pd.read_csv(input_file, sep='\t')
-df_mutations = pd.read_csv('./Data/all_resistant_variants.csv')
-df_lineage = pd.read_csv('./Data/Lineage.csv')
+df_mutations = pd.read_csv('../../../Data/all_resistant_variants.csv')
+df_lineage = pd.read_csv('../../../Data/Lineage.csv')
 
 
 
@@ -39,7 +40,7 @@ for _, pos_row in df.iterrows():
     if match is not None:
         for _, range_row in match.iterrows():
             lineage = range_row['LIN']
-            resistances['lineage'] = lineage 
+            resistances['Lineage'] = lineage 
 
 
 
@@ -239,5 +240,65 @@ for key, value in gene_dict.items():
         elif amino_sequence == 'indel':
             resistances[key] = genes[key]
 
-with open(f'{output_dir}/{output_base_name}_variant_drug.json', 'w') as f:
-    json.dump(resistances, f)
+
+template_path = "../../../Data/Report_Template.docx"
+patient_info_path = "../../../Data/patient_info.csv"
+output_dir = sys.argv[3]
+
+
+#Making the document
+os.makedirs(output_dir, exist_ok=True)
+doc = Document(template_path)
+
+target_barcode = output_base_name
+df = pd.read_csv(patient_info_path)
+
+row = df[df['Barcode'] == target_barcode]
+
+if row.empty:
+    print(f"No record found with Barcode: {target_barcode}")
+    exit(1)
+
+patient_info = row.to_dict(orient='records')[0]
+
+genes = {
+    'Ethambutol': 'Resistant', 'Ethambutol_g': 'None',
+    'Pyrazinamide': 'Resistant', 'Pyrazinamide_g': 'None',
+    'Isoniazid': 'Resistant', 'Isoniazid_g': 'None',
+    'Rifampin': 'Resistant', 'Rifampin_g': 'None',
+    'Streptomycin': 'Resistant', 'Streptomycin_g': 'None',
+    'Ciprofloxacin': 'Resistant', 'Ciprofloxacin_g': 'None',
+    'Ofloxacin': 'Resistant', 'Ofloxacin_g': 'None',
+    'Moxifloxacin': 'Resistant', 'Moxifloxacin_g': 'None',
+    'Amikacin': 'Resistant', 'Amikacin_g': 'None',
+    'Kanamycin': 'Resistant', 'Kanamycin_g': 'None',
+    'Capreomycin': 'Resistant', 'Capreomycin_g': 'None',
+}
+for mutation, antibiotic in resistances.items():
+    if antibiotic in genes:
+        genes[antibiotic] = 'Susceptible'
+        genes[antibiotic + '_g'] = mutation
+    elif mutation == 'Lineage':
+        genes['Lineage'] = antibiotic
+
+context = patient_info.copy()
+context.update(genes)
+
+for paragraph in doc.paragraphs:
+    if '{{' in paragraph.text and '}}' in paragraph.text:
+        template = Template(paragraph.text)
+        paragraph.text = template.render(context)
+
+for table in doc.tables:
+    for row in table.rows:
+        for cell in row.cells:
+            if '{{' in cell.text and '}}' in cell.text:
+                template = Template(cell.text)
+                cell.text = template.render(context)
+
+input_docx_path = os.path.join(output_dir, (f'{output_base_name}_report.docx'))
+
+doc.save(input_docx_path)
+print(f"Saved DOCX file to: {input_docx_path}")
+
+
