@@ -7,7 +7,7 @@ pipeline input paramaters
 
 params.data = '/some/data/file'
 params.output_dir = './results'
-params.reference = './Data/GCF_000195955.2_ASM19595v2_genomic.fasta'
+params.reference = './Data/reference_H37RV.fasta'
 params.primers = './Data/primers.txt'
 
 
@@ -145,7 +145,7 @@ process compareMutations {
 
     script:
     """
-    python3 ./Code/compare.py ${mutations} ${data.simpleName} ${output_dir} ${reference}
+    python3 /Users/maximfedorov/Downloads/Lab/Summer_Project/Code/compare_mutations.py ${mutations} ${data.simpleName} ${output_dir} ${reference}
     """
 }
 
