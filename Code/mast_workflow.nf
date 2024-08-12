@@ -7,8 +7,8 @@ pipeline input paramaters
 
 params.data = '/some/data/file'
 params.output_dir = './results'
-params.reference = './Data/reference_H37RV.fasta'
-params.primers = './Data/primers.txt'
+params.reference = '/Users/maximfedorov/Downloads/Lab/Summer_Project/Data/reference_H37RV.fasta'
+params.primers = './Data/tb-amplicon-primers.bed'
 
 
 log.info"""\
@@ -20,6 +20,29 @@ log.info"""\
         primers: $params.primers
         """
 
+process runTrimming {
+    input:
+    file fastq
+    file primers
+
+    output:
+    file 'trimmed_file.fastq.gz'
+
+    script:
+    """
+    cutadapt_options=""
+    options=(" -g" " -a")
+    index=0
+    while IFS= read -r line; do
+         cutadapt_options+="\${options[index]} \$line"
+         index=\$(( (index + 1) % \${#options[@]} ))
+    done < "$primers"
+
+    echo "Constructed cutadapt options: \$cutadapt_options" > test.txt
+
+    cutadapt \$cutadapt_options -o trimmed_file.fastq.gz $fastq
+    """
+}
 
 process runQualityTrimming {
     input:
@@ -56,12 +79,27 @@ process runSortAndIndex {
     file alligned
 
     output:
-    file 'alligned.sorted.bam'
+    file 'alligned_sorted.bam'
 
     script:
     """
-    samtools sort $alligned > alligned.sorted.bam
-    samtools index alligned.sorted.bam
+    samtools sort $alligned > alligned_sorted.bam
+    samtools index alligned_sorted.bam
+    """
+}
+
+process runTrimmingIvar {
+
+    input:
+    file alligned
+    file input_primers
+
+    output:
+    file 'trimmed_alligned_sorted.bam'
+
+    script:
+    """
+    ivar trim -b $input_primers -i $alligned -p trimmed_alligned_sorted.bam -q 2 -x 1000
     """
 }
 
@@ -80,6 +118,8 @@ process runVariantCalling {
     freebayes -f $reference $alligned > variants.vcf
     """
 }
+
+
 
 process runFilterVariants {
 
@@ -130,12 +170,12 @@ workflow {
     primers_txt = Channel.fromPath(params.primers)
     reference = Channel.fromPath(params.reference)
 
+
     qual_ch = runQualityTrimming(Channel.fromPath(params.data))
-
-
     allignment_ch = runAllignment(qual_ch, reference)
     sorted_ch = runSortAndIndex(allignment_ch)
-    variant_ch = runVariantCalling(sorted_ch, reference)
+    trimmed_ch = runTrimmingIvar(sorted_ch, Channel.fromPath(params.primers))
+    variant_ch = runVariantCalling(trimmed_ch , reference)
     raw_variant_ch = runFilterVariants(variant_ch)
     mutations_ch = runConvertToTSV(variant_ch)
     compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.output_dir), Channel.fromPath(params.reference))
