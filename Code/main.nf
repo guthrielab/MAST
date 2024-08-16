@@ -7,7 +7,7 @@ pipeline input paramaters
 
 params.data = '/Data/file'
 params.output_dir = '/results'
-params.reference = /Data/reference_H37RV.fasta'
+params.reference = '/Data/reference_H37RV.fasta'
 params.primers = '/Data/tb-amplicon-primers.bed'
 
 
