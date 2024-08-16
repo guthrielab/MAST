@@ -5,10 +5,10 @@ nextflow.enable.dsl=2
 pipeline input paramaters
 """
 
-params.data = '/some/data/file'
-params.output_dir = './results'
-params.reference = '/Users/maximfedorov/Downloads/Lab/Summer_Project/Data/reference_H37RV.fasta'
-params.primers = './Data/tb-amplicon-primers.bed'
+params.data = '/Data/file'
+params.output_dir = '/results'
+params.reference = /Data/reference_H37RV.fasta'
+params.primers = '/Data/tb-amplicon-primers.bed'
 
 
 log.info"""\
@@ -162,7 +162,7 @@ process compareMutations {
 
     script:
     """
-    python3 /Users/maximfedorov/Downloads/Lab/Summer_Project/Code/compare_mutations.py ${mutations} ${data.simpleName} ${output_dir} ${reference}
+    python3 Code/compare_mutations.py ${mutations} ${data.simpleName} ${output_dir} ${reference}
     """
 }
 
