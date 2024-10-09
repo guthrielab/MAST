@@ -53,7 +53,7 @@ process runQualityTrimming {
 
     script:
     """
-    filtlong --min_length 10 --max_length 1000000 --keep_percent 90 --target_bases 400000000 $fastq_trimmed | gzip > 'quality_trimmed.fastq.gz'
+    filtlong --min_length 10 --keep_percent 90 --target_bases 400000000 $fastq_trimmed | gzip > 'quality_trimmed.fastq.gz'
     """
 
 }
