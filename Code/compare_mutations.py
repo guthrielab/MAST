@@ -13,8 +13,8 @@ fasta_file = sys.argv[4]
 resistances = {}
 
 df = pd.read_csv(input_file, sep='\t')
-df_mutations = pd.read_csv('../../../Data/all_resistant_variants.csv')
-df_lineage = pd.read_csv('../../../Data/Lineage.csv')
+df_mutations = pd.read_csv('../../../../Data/all_resistant_variants.csv')
+df_lineage = pd.read_csv('../../../../Data/Lineage.csv')
 
 
 
@@ -241,8 +241,8 @@ for key, value in gene_dict.items():
             resistances[key] = genes[key]
 
 
-template_path = "../../../Data/Report_Template.docx"
-patient_info_path = "../../../Data/patient_info.csv"
+template_path = "../../../../Data/Report_Template.docx"
+patient_info_path = "../../../../Data/patient_info.csv"
 output_dir = sys.argv[3]
 
 

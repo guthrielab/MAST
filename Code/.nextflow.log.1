@@ -1,0 +1,91 @@
+Nov-06 12:29:48.343 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --data /Users/maximfedorov/Downloads/Classes/Lab/Reads/SRR1510036_1.fastq.gz --outdir /Users/maximfedorov/Downloads/results -resume
+Nov-06 12:29:48.643 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.04.1
+Nov-06 12:29:48.699 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/Users/maximfedorov/.nextflow/plugins; core-plugins: nf-amazon@2.5.2,nf-azure@1.6.0,nf-cloudcache@0.4.1,nf-codecommit@0.2.0,nf-console@1.1.3,nf-ga4gh@1.3.0,nf-google@1.13.2,nf-tower@1.9.1,nf-wave@1.4.2
+Nov-06 12:29:48.726 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Nov-06 12:29:48.727 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Nov-06 12:29:48.739 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.10.0 in 'deployment' mode
+Nov-06 12:29:48.771 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Nov-06 12:29:48.898 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /Users/maximfedorov/.nextflow/secrets/store.json
+Nov-06 12:29:48.923 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@5a4c638d] - activable => nextflow.secret.LocalSecretsProvider@5a4c638d
+Nov-06 12:29:49.137 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Nov-06 12:29:49.170 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [sharp_coulomb] DSL2 - revision: 3916cd1922
+Nov-06 12:29:49.173 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Nov-06 12:29:49.174 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Nov-06 12:29:49.362 [main] DEBUG nextflow.Session - Session UUID: da1c7716-8f85-4d11-b92c-5cbe783891c0
+Nov-06 12:29:49.363 [main] DEBUG nextflow.Session - Run name: sharp_coulomb
+Nov-06 12:29:49.363 [main] DEBUG nextflow.Session - Executor pool size: 8
+Nov-06 12:29:49.375 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Nov-06 12:29:49.472 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.04.1 build 5913
+  Created: 20-05-2024 09:48 UTC (05:48 EDT)
+  System: Mac OS X 14.5
+  Runtime: Groovy 4.0.21 on OpenJDK 64-Bit Server VM 22.0.1+8
+  Encoding: UTF-8 (UTF-8)
+  Process: 76244@dyn172-30-111-64.wireless.uwo.pri [172.30.111.64]
+  CPUs: 8 - Mem: 8 GB (32.9 MB) - Swap: 6 GB (1.2 GB) - Virtual threads ON
+Nov-06 12:29:49.538 [main] DEBUG nextflow.Session - Work-dir: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work [Mac OS X]
+Nov-06 12:29:49.539 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/bin
+Nov-06 12:29:49.564 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Nov-06 12:29:49.589 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Nov-06 12:29:49.664 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Nov-06 12:29:49.681 [main] DEBUG nextflow.util.CustomPoolFactory - Creating virtual thread pool
+Nov-06 12:29:50.012 [main] DEBUG nextflow.Session - Session start
+Nov-06 12:29:51.521 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Nov-06 12:29:51.590 [main] INFO  nextflow.Nextflow -         M T B   A M P L I C O N   T O O L
+        =================================
+        data: /Users/maximfedorov/Downloads/Classes/Lab/Reads/SRR1510036_1.fastq.gz
+        outdir: /Users/maximfedorov/Downloads/results
+        reference: reference_H37RV.fasta
+        primers: tb-amplicon-primers.bed
+        
+Nov-06 12:29:51.829 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:51.830 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:51.844 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Nov-06 12:29:51.859 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=8; memory=8 GB; capacity=8; pollInterval=100ms; dumpInterval=5m
+Nov-06 12:29:51.863 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Nov-06 12:29:51.999 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:51.999 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.005 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.005 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.011 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.011 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.025 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.026 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.039 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.039 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.046 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.046 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.059 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:29:52.059 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:29:52.070 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: runTrimmingIvar, runQualityTrimming, runConvertToTSV, runSortAndIndex, runTrimming, runAllignment, runVariantCalling, runFilterVariants, compareMutations
+Nov-06 12:29:52.070 [main] DEBUG nextflow.Session - Igniting dataflow network (16)
+Nov-06 12:29:52.085 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runQualityTrimming
+Nov-06 12:29:52.086 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runAllignment
+Nov-06 12:29:52.086 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runSortAndIndex
+Nov-06 12:29:52.086 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runTrimmingIvar
+Nov-06 12:29:52.086 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runVariantCalling
+Nov-06 12:29:52.087 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runFilterVariants
+Nov-06 12:29:52.087 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runConvertToTSV
+Nov-06 12:29:52.089 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > compareMutations
+Nov-06 12:29:52.118 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_67e4aace2fc7c7dc: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/main.nf
+Nov-06 12:29:52.119 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Nov-06 12:29:52.119 [main] DEBUG nextflow.Session - Session await
+Nov-06 12:29:52.456 [Actor Thread 10] INFO  nextflow.processor.TaskProcessor - [47/4feea6] Cached process > runQualityTrimming (1)
+Nov-06 12:29:52.533 [Actor Thread 15] INFO  nextflow.processor.TaskProcessor - [e4/eaada3] Cached process > runAllignment (1)
+Nov-06 12:29:52.557 [Actor Thread 21] INFO  nextflow.processor.TaskProcessor - [22/d87eb6] Cached process > runSortAndIndex (1)
+Nov-06 12:29:52.581 [Actor Thread 28] INFO  nextflow.processor.TaskProcessor - [67/ea69b3] Cached process > runTrimmingIvar (1)
+Nov-06 12:29:52.596 [Actor Thread 34] INFO  nextflow.processor.TaskProcessor - [05/738a5b] Cached process > runVariantCalling (1)
+Nov-06 12:29:52.613 [Actor Thread 42] INFO  nextflow.processor.TaskProcessor - [84/1756b8] Cached process > runConvertToTSV (1)
+Nov-06 12:29:52.636 [Actor Thread 43] INFO  nextflow.processor.TaskProcessor - [1d/b5fd73] Cached process > runFilterVariants (1)
+Nov-06 12:29:52.804 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Nov-06 12:29:52.808 [Task submitter] INFO  nextflow.Session - [fd/e174e1] Submitted process > compareMutations (1)
+Nov-06 12:29:54.278 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 8; name: compareMutations (1); status: COMPLETED; exit: 0; error: -; workDir: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work/fd/e174e19183314169019bd9f9b70b3a]
+Nov-06 12:29:54.330 [main] DEBUG nextflow.Session - Session await > all processes finished
+Nov-06 12:29:54.370 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Nov-06 12:29:54.371 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Nov-06 12:29:54.379 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Nov-06 12:29:54.407 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=1; failedCount=0; ignoredCount=0; cachedCount=7; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=1.4s; failedDuration=0ms; cachedDuration=4m 51s;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=0; ]
+Nov-06 12:29:54.688 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Nov-06 12:29:54.745 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'FileTransfer' shutdown completed (hard=false)
+Nov-06 12:29:54.746 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

@@ -1,0 +1,128 @@
+Nov-06 12:26:30.278 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --data /Users/maximfedorov/Downloads/Classes/Lab/Reads/SRR1510036_1.fastq.gz -resume
+Nov-06 12:26:30.541 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.04.1
+Nov-06 12:26:30.605 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/Users/maximfedorov/.nextflow/plugins; core-plugins: nf-amazon@2.5.2,nf-azure@1.6.0,nf-cloudcache@0.4.1,nf-codecommit@0.2.0,nf-console@1.1.3,nf-ga4gh@1.3.0,nf-google@1.13.2,nf-tower@1.9.1,nf-wave@1.4.2
+Nov-06 12:26:30.627 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Nov-06 12:26:30.628 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Nov-06 12:26:30.638 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.10.0 in 'deployment' mode
+Nov-06 12:26:30.673 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Nov-06 12:26:30.777 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /Users/maximfedorov/.nextflow/secrets/store.json
+Nov-06 12:26:30.813 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@267bbe1a] - activable => nextflow.secret.LocalSecretsProvider@267bbe1a
+Nov-06 12:26:31.059 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Nov-06 12:26:31.087 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [mighty_mcnulty] DSL2 - revision: 3916cd1922
+Nov-06 12:26:31.093 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Nov-06 12:26:31.093 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Nov-06 12:26:31.211 [main] DEBUG nextflow.Session - Session UUID: da1c7716-8f85-4d11-b92c-5cbe783891c0
+Nov-06 12:26:31.213 [main] DEBUG nextflow.Session - Run name: mighty_mcnulty
+Nov-06 12:26:31.214 [main] DEBUG nextflow.Session - Executor pool size: 8
+Nov-06 12:26:31.227 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Nov-06 12:26:31.332 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 24.04.1 build 5913
+  Created: 20-05-2024 09:48 UTC (05:48 EDT)
+  System: Mac OS X 14.5
+  Runtime: Groovy 4.0.21 on OpenJDK 64-Bit Server VM 22.0.1+8
+  Encoding: UTF-8 (UTF-8)
+  Process: 76051@dyn172-30-111-64.wireless.uwo.pri [172.30.111.64]
+  CPUs: 8 - Mem: 8 GB (33.3 MB) - Swap: 6 GB (1.2 GB) - Virtual threads ON
+Nov-06 12:26:31.396 [main] DEBUG nextflow.Session - Work-dir: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work [Mac OS X]
+Nov-06 12:26:31.397 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/bin
+Nov-06 12:26:31.420 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Nov-06 12:26:31.444 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Nov-06 12:26:31.541 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Nov-06 12:26:31.562 [main] DEBUG nextflow.util.CustomPoolFactory - Creating virtual thread pool
+Nov-06 12:26:31.903 [main] DEBUG nextflow.Session - Session start
+Nov-06 12:26:33.474 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Nov-06 12:26:33.533 [main] INFO  nextflow.Nextflow -         M T B   A M P L I C O N   T O O L
+        =================================
+        data: /Users/maximfedorov/Downloads/Classes/Lab/Reads/SRR1510036_1.fastq.gz
+        outdir: /results
+        reference: reference_H37RV.fasta
+        primers: tb-amplicon-primers.bed
+        
+Nov-06 12:26:33.750 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.751 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.765 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Nov-06 12:26:33.777 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=8; memory=8 GB; capacity=8; pollInterval=100ms; dumpInterval=5m
+Nov-06 12:26:33.783 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Nov-06 12:26:33.919 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.919 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.924 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.924 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.930 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.930 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.936 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.937 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.949 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.950 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.955 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.955 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.974 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Nov-06 12:26:33.974 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Nov-06 12:26:33.990 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: runTrimmingIvar, runQualityTrimming, runConvertToTSV, runSortAndIndex, runTrimming, runAllignment, runVariantCalling, runFilterVariants, compareMutations
+Nov-06 12:26:33.990 [main] DEBUG nextflow.Session - Igniting dataflow network (16)
+Nov-06 12:26:34.008 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runQualityTrimming
+Nov-06 12:26:34.009 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runAllignment
+Nov-06 12:26:34.009 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runSortAndIndex
+Nov-06 12:26:34.010 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runTrimmingIvar
+Nov-06 12:26:34.011 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runVariantCalling
+Nov-06 12:26:34.011 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runFilterVariants
+Nov-06 12:26:34.011 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > runConvertToTSV
+Nov-06 12:26:34.012 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > compareMutations
+Nov-06 12:26:34.013 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_67e4aace2fc7c7dc: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/main.nf
+Nov-06 12:26:34.042 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Nov-06 12:26:34.042 [main] DEBUG nextflow.Session - Session await
+Nov-06 12:26:34.506 [Actor Thread 10] INFO  nextflow.processor.TaskProcessor - [47/4feea6] Cached process > runQualityTrimming (1)
+Nov-06 12:26:34.560 [Actor Thread 15] INFO  nextflow.processor.TaskProcessor - [e4/eaada3] Cached process > runAllignment (1)
+Nov-06 12:26:34.578 [Actor Thread 21] INFO  nextflow.processor.TaskProcessor - [22/d87eb6] Cached process > runSortAndIndex (1)
+Nov-06 12:26:34.596 [Actor Thread 28] INFO  nextflow.processor.TaskProcessor - [67/ea69b3] Cached process > runTrimmingIvar (1)
+Nov-06 12:26:34.612 [Actor Thread 34] INFO  nextflow.processor.TaskProcessor - [05/738a5b] Cached process > runVariantCalling (1)
+Nov-06 12:26:34.659 [Actor Thread 42] INFO  nextflow.processor.TaskProcessor - [84/1756b8] Cached process > runConvertToTSV (1)
+Nov-06 12:26:34.658 [Actor Thread 43] INFO  nextflow.processor.TaskProcessor - [1d/b5fd73] Cached process > runFilterVariants (1)
+Nov-06 12:26:34.686 [Actor Thread 51] DEBUG nextflow.util.HashBuilder - Unable to get file attributes file: /results -- Cause: java.nio.file.NoSuchFileException: /results
+Nov-06 12:26:34.781 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Nov-06 12:26:34.783 [Task submitter] INFO  nextflow.Session - [20/5479d3] Submitted process > compareMutations (1)
+Nov-06 12:26:36.333 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 8; name: compareMutations (1); status: COMPLETED; exit: 1; error: -; workDir: /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work/20/5479d38bfdabccc104d91ccb584874]
+Nov-06 12:26:36.358 [TaskFinalizer-1] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=compareMutations (1); work-dir=/Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work/20/5479d38bfdabccc104d91ccb584874
+  error [nextflow.exception.ProcessFailedException]: Process `compareMutations (1)` terminated with an error exit status (1)
+Nov-06 12:26:36.431 [TaskFinalizer-1] ERROR nextflow.processor.TaskProcessor - Error executing process > 'compareMutations (1)'
+
+Caused by:
+  Process `compareMutations (1)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  python3 compare_mutations.py variants_h37ra_2.tsv SRR1510036_1 results reference_H37RV.fasta
+
+Command exit status:
+  1
+
+Command output:
+  ATGCGGGCGTTGATCATCGTCGACGTGCAGAACGACTTCTGCGAGGGTGGCTCGCTGGCGGTAACCGGTGGCGCCGCGCTGGCCCGCGCCATCAGCGACTACCTGGCCGAAGCGGCGGACTACCATCACGTCGTGGCAACCAAGGACTTCCACATCGACCCGGGTGACCACTTCTCCGGCACACCGGACTATTCCTCGTCGTGGCCACCGCATTGCGTCAGCGGTACTCCCGGCGCGGACTTCCATCCCAGTCTGGACACGTCGGCAATCGAGGCGGTGTTCTACAAGGGTGCCTACACCGGAGCGTACAGCGGCTTCGAAGGAGTCGACGAGAACGGCACGCCACTGCTGAATTGGCTGCGGCAACGCGGCGTCGATGAGGTCGATGTGGTCGGTATTGCCACCGATCATTGTGTGCGCCAGACGGCCGAGGACGCGGTACGCAATGGCTTGGCCACCAGGGTGCTGGTGGACCTGACAGCGGGTGTGTCGGCCGATACCACCGTCGCCGCGCTGGAGGAGATGCGCACCGCCAGCGTCGAGTTGGTTTGCAGCTCCTGA
+  LADSRQSKTAASPSPSRPQSSSNNSVPGAPNRVSFAKLREPLEVPGLLDVQTDSFEWLIGSPRWRESAAERGDVNPVGGLEEVLYELSPIEDFSGSMSLSFSDPRFDDVKAPVDECKDKDMTYAAPLFVTAEFINNNTGEIKSQTVFMGDFPMMTEKGTFIINGTERVVVSQLVRSPGVYFDETIDKSTDKTLHSVKVIPSRGAWLEFDVDKRDTVGVRIDRKRRQPVTVLLKALGWTSEQIVERFGFSEIMRSTLEKDNTVGTDEALLDIYRKLRPGEPPTKESAQTLLENLFFKEKRYDLARVGRYKVNKKLGLHVGEPITSSTLTEEDVVATIEYLVRLHEGQTTMTVPGGVEVPVETDDIDHFGNRRLRTVGELIQNQIRVGMSRMERVVRERMTTQDVEAITPQTLINIRPVVAAIKEFFGTSQLSQFMDQNNPLSGLTHKRRLSALGPGGLSRERAGLEVRDVHPSHYGRMCPIETPEGPNIGLIGSLSVYARVNPFGFIETPYRKVVDGVVSDEIVYLTADEEDRHVVAQANSPIDADGRFVEPRVLVRRKAGEVEYVPSSEVDYMDVSPRQMVSVATAMIPFLEHDDANRALMGANMQRQAVPLVRSEAPLVGTGMELRAAIDAGDVVVAEESGVIEEVSADYITVMHDNGTRRTYRMRKFARSNHGTCANQCPIVDAGDRVEAGQVIADGPCTDDGEMALGKNLLVAIMPWEGHNYEDAIILSNRLVEEDVLTSIHIEEHEIDARDTKLGAEEITRDIPNISDEVLADLDERGIVRIGAEVRDGDILVGKVTPKGETELTPEERLLRAIFGEKAREVRDTSLKVPHGESGKVIGIRVFSREDEDELPAGVNELVRVYVAQKRKISDGDKLAGRHGNKGVIGKILPVEDMPFLADGTPVDIILNTHGVPRRMNIGQILETHLGWCAHSGWKVDAAKGVPDWAARLPDELLEAQPNAIVSTPVFDGAQEAELQGLLSCTLPNRDGDVLVDADGKAMLFDGRSGEPFPYPVTVGYMYIMKLHHLVDDKIHARSTGPYSMITQQPLGGKAQFGGQRFGEMECWAMQAYGAAYTLQELLTIKSDDTVGRVKVYEAIVKGENIPEPGIPESFKVLLKELQSLCLNVEVLSSDGAAIELREGEDEDLERAAANLGINLSRNESASVEDLA*
+  LADSRQSKTAASPSPSRPQSSSNNSVPGAPNRVSFAKLREPLEVPGLLDVQTDSFEWLIGSPRWRESAAERGDVNPVGGLEEVLYELSPIEDFSGSMSLSFSDPRFDDVKAPVDECKDKDMTYAAPLFVTAEFINNNTGEIKSQTVFMGDFPMMTEKGTFIINGTERVVVSQLVRSPGVYFDETIDKSTDKTLHSVKVIPSRGAWLEFDVDKRDTVGVRIDRKRRQPVTVLLKALGWTSEQIVERFGFSEIMRSTLEKDNTVGTDEALLDIYRKLRPGEPPTKESAQTLLENLFFKEKRYDLARVGRYKVNKKLGLHVGEPITSSTLTEEDVVATIEYLVRLHEGQTTMTVPGGVEVPVETDDIDHFGNRRLRTVGELIQNQIRVGMSRMERVVRERMTTQDVEAITPQTLINIRPVVAAIKEFFGTSQLSQFMDQNNPLSGLTHKRRLSALGPGGLSRERAGLEVRDVHPSHYGRMCPIETPEGPNIGLIGSLSVYARVNPFGFIETPYRKVVDGVVSDEIVYLTADEEDRHVVAQANSPIDADGRFVEPRVLVRRKAGEVEYVPSSEVDYMDVSPRQMVSVATAMIPFLEHDDANRALMGANMQRQAVPLVRSEAPLVGTGMELRAAIDAGDVVVAEESGVIEEVSADYITVMHDNGTRRTYRMRKFARSNHGTCANQCPIVDAGDRVEAGQVIADGPCTDDGEMALGKNLLVAIMPWEGHNYEDAIILSNRLVEEDVLTSIHIEEHEIDARDTKLGAEEITRDIPNISDEVLADLDERGIVRIGAEVRDGDILVGKVTPKGETELTPEERLLRAIFGEKAREVRDTSLKVPHGESGKVIGIRVFSREDEDELPAGVNELVRVYVAQKRKISDGDKLAGRHGNKGVIGKILPVEDMPFLADGTPVDIILNTHGVPRRMNIGQILETHLGWCAHSGWKVDAAKGVPDWAARLPDELLEAQPNAIVSTPVFDGAQEAELQGLLSCTLPNRDGDVLVDADGKAMLFDGRSGEPFPYPVTVGYMYIMKLHHLVDDKIHARSTGPYSMITQQPLGGKAQFGGQRFGEMECWAMQAYGAAYTLQELLTIKSDDTVGRVKVYEAIVKGENIPEPGIPESFKVLLKELQSLCLNVEVLSSDGAAIELREGEDEDLERAAANLGINLSRNESASVEDLA*
+
+Command error:
+  ATGCGGGCGTTGATCATCGTCGACGTGCAGAACGACTTCTGCGAGGGTGGCTCGCTGGCGGTAACCGGTGGCGCCGCGCTGGCCCGCGCCATCAGCGACTACCTGGCCGAAGCGGCGGACTACCATCACGTCGTGGCAACCAAGGACTTCCACATCGACCCGGGTGACCACTTCTCCGGCACACCGGACTATTCCTCGTCGTGGCCACCGCATTGCGTCAGCGGTACTCCCGGCGCGGACTTCCATCCCAGTCTGGACACGTCGGCAATCGAGGCGGTGTTCTACAAGGGTGCCTACACCGGAGCGTACAGCGGCTTCGAAGGAGTCGACGAGAACGGCACGCCACTGCTGAATTGGCTGCGGCAACGCGGCGTCGATGAGGTCGATGTGGTCGGTATTGCCACCGATCATTGTGTGCGCCAGACGGCCGAGGACGCGGTACGCAATGGCTTGGCCACCAGGGTGCTGGTGGACCTGACAGCGGGTGTGTCGGCCGATACCACCGTCGCCGCGCTGGAGGAGATGCGCACCGCCAGCGTCGAGTTGGTTTGCAGCTCCTGA
+  LADSRQSKTAASPSPSRPQSSSNNSVPGAPNRVSFAKLREPLEVPGLLDVQTDSFEWLIGSPRWRESAAERGDVNPVGGLEEVLYELSPIEDFSGSMSLSFSDPRFDDVKAPVDECKDKDMTYAAPLFVTAEFINNNTGEIKSQTVFMGDFPMMTEKGTFIINGTERVVVSQLVRSPGVYFDETIDKSTDKTLHSVKVIPSRGAWLEFDVDKRDTVGVRIDRKRRQPVTVLLKALGWTSEQIVERFGFSEIMRSTLEKDNTVGTDEALLDIYRKLRPGEPPTKESAQTLLENLFFKEKRYDLARVGRYKVNKKLGLHVGEPITSSTLTEEDVVATIEYLVRLHEGQTTMTVPGGVEVPVETDDIDHFGNRRLRTVGELIQNQIRVGMSRMERVVRERMTTQDVEAITPQTLINIRPVVAAIKEFFGTSQLSQFMDQNNPLSGLTHKRRLSALGPGGLSRERAGLEVRDVHPSHYGRMCPIETPEGPNIGLIGSLSVYARVNPFGFIETPYRKVVDGVVSDEIVYLTADEEDRHVVAQANSPIDADGRFVEPRVLVRRKAGEVEYVPSSEVDYMDVSPRQMVSVATAMIPFLEHDDANRALMGANMQRQAVPLVRSEAPLVGTGMELRAAIDAGDVVVAEESGVIEEVSADYITVMHDNGTRRTYRMRKFARSNHGTCANQCPIVDAGDRVEAGQVIADGPCTDDGEMALGKNLLVAIMPWEGHNYEDAIILSNRLVEEDVLTSIHIEEHEIDARDTKLGAEEITRDIPNISDEVLADLDERGIVRIGAEVRDGDILVGKVTPKGETELTPEERLLRAIFGEKAREVRDTSLKVPHGESGKVIGIRVFSREDEDELPAGVNELVRVYVAQKRKISDGDKLAGRHGNKGVIGKILPVEDMPFLADGTPVDIILNTHGVPRRMNIGQILETHLGWCAHSGWKVDAAKGVPDWAARLPDELLEAQPNAIVSTPVFDGAQEAELQGLLSCTLPNRDGDVLVDADGKAMLFDGRSGEPFPYPVTVGYMYIMKLHHLVDDKIHARSTGPYSMITQQPLGGKAQFGGQRFGEMECWAMQAYGAAYTLQELLTIKSDDTVGRVKVYEAIVKGENIPEPGIPESFKVLLKELQSLCLNVEVLSSDGAAIELREGEDEDLERAAANLGINLSRNESASVEDLA*
+  LADSRQSKTAASPSPSRPQSSSNNSVPGAPNRVSFAKLREPLEVPGLLDVQTDSFEWLIGSPRWRESAAERGDVNPVGGLEEVLYELSPIEDFSGSMSLSFSDPRFDDVKAPVDECKDKDMTYAAPLFVTAEFINNNTGEIKSQTVFMGDFPMMTEKGTFIINGTERVVVSQLVRSPGVYFDETIDKSTDKTLHSVKVIPSRGAWLEFDVDKRDTVGVRIDRKRRQPVTVLLKALGWTSEQIVERFGFSEIMRSTLEKDNTVGTDEALLDIYRKLRPGEPPTKESAQTLLENLFFKEKRYDLARVGRYKVNKKLGLHVGEPITSSTLTEEDVVATIEYLVRLHEGQTTMTVPGGVEVPVETDDIDHFGNRRLRTVGELIQNQIRVGMSRMERVVRERMTTQDVEAITPQTLINIRPVVAAIKEFFGTSQLSQFMDQNNPLSGLTHKRRLSALGPGGLSRERAGLEVRDVHPSHYGRMCPIETPEGPNIGLIGSLSVYARVNPFGFIETPYRKVVDGVVSDEIVYLTADEEDRHVVAQANSPIDADGRFVEPRVLVRRKAGEVEYVPSSEVDYMDVSPRQMVSVATAMIPFLEHDDANRALMGANMQRQAVPLVRSEAPLVGTGMELRAAIDAGDVVVAEESGVIEEVSADYITVMHDNGTRRTYRMRKFARSNHGTCANQCPIVDAGDRVEAGQVIADGPCTDDGEMALGKNLLVAIMPWEGHNYEDAIILSNRLVEEDVLTSIHIEEHEIDARDTKLGAEEITRDIPNISDEVLADLDERGIVRIGAEVRDGDILVGKVTPKGETELTPEERLLRAIFGEKAREVRDTSLKVPHGESGKVIGIRVFSREDEDELPAGVNELVRVYVAQKRKISDGDKLAGRHGNKGVIGKILPVEDMPFLADGTPVDIILNTHGVPRRMNIGQILETHLGWCAHSGWKVDAAKGVPDWAARLPDELLEAQPNAIVSTPVFDGAQEAELQGLLSCTLPNRDGDVLVDADGKAMLFDGRSGEPFPYPVTVGYMYIMKLHHLVDDKIHARSTGPYSMITQQPLGGKAQFGGQRFGEMECWAMQAYGAAYTLQELLTIKSDDTVGRVKVYEAIVKGENIPEPGIPESFKVLLKELQSLCLNVEVLSSDGAAIELREGEDEDLERAAANLGINLSRNESASVEDLA*
+  Traceback (most recent call last):
+    File "compare_mutations.py", line 250, in <module>
+      os.makedirs(output_dir, exist_ok=True)
+    File "/Users/maximfedorov/anaconda3/envs/bioinformatics/lib/python3.6/os.py", line 220, in makedirs
+      mkdir(name, mode)
+  FileExistsError: [Errno 17] File exists: 'results'
+
+Work dir:
+  /Users/maximfedorov/Downloads/Classes/Lab/MAST/Code/work/20/5479d38bfdabccc104d91ccb584874
+
+Tip: view the complete command output by changing to the process work dir and entering the command `cat .command.out`
+Nov-06 12:26:36.441 [main] DEBUG nextflow.Session - Session await > all processes finished
+Nov-06 12:26:36.458 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Nov-06 12:26:36.458 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Nov-06 12:26:36.464 [TaskFinalizer-1] DEBUG nextflow.Session - Session aborted -- Cause: Process `compareMutations (1)` terminated with an error exit status (1)
+Nov-06 12:26:36.514 [main] DEBUG nextflow.util.ThreadPoolManager - Thread pool 'TaskFinalizer' shutdown completed (hard=false)
+Nov-06 12:26:36.533 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=1; ignoredCount=0; cachedCount=7; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=1.5s; cachedDuration=4m 51s;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=0; ]
+Nov-06 12:26:36.729 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Nov-06 12:26:36.760 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

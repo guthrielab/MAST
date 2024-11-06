@@ -7,8 +7,9 @@ pipeline input paramaters
 
 params.data = '/Data/file'
 params.outdir = '/results'
-params.reference = '/Data/reference_H37RV.fasta'
-params.primers = '/Data/tb-amplicon-primers.bed'
+params.reference = 'reference_H37RV.fasta'
+params.primers = 'tb-amplicon-primers.bed'
+params.compare_mutations = 'compare_mutations.py'
 
 
 log.info"""\
@@ -159,10 +160,11 @@ process compareMutations {
     file data
     file outdir
     file reference
+    file compare_mutations
 
     script:
     """
-    python3 Code/compare_mutations.py ${mutations} ${data.simpleName} ${outdir} ${reference}
+    python3 ${compare_mutations} ${mutations} ${data.simpleName} ${outdir} ${reference}
     """
 }
 
@@ -178,5 +180,5 @@ workflow {
     variant_ch = runVariantCalling(trimmed_ch , reference)
     raw_variant_ch = runFilterVariants(variant_ch)
     mutations_ch = runConvertToTSV(variant_ch)
-    compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.outdir), Channel.fromPath(params.reference))
+    compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.outdir), Channel.fromPath(params.reference), Channel.fromPath(params.compare_mutations))
 }
