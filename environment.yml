@@ -1,9 +1,4 @@
-name: environment
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
+
 name: bioinformatics
 channels:
   - conda-forge
