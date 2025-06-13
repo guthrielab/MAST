@@ -1,2 +1,0 @@
-Patient_Name,Barcode,Birth_Date,Patient_ID,Location,Sample_Type,Sample_Source,Sample_Date,Sample_ID,Sequenced_From,Reporting_Lab,Report_Date,Requested_by,Requester_Contact
-John Doe,SRR1510049_1,1990-01-01,P123456,New York,Blood,Vein,2023-07-25,S123456,Lab A,Lab B,2023-07-26,Dr. Smith,dr.smith@example.com
