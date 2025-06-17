@@ -13,8 +13,8 @@ fasta_file = sys.argv[4]
 resistances = {}
 
 df = pd.read_csv(input_file, sep='\t')
-df_mutations = pd.read_csv('~/MAST/MAST/Data/all_resistant_variants.csv')
-df_lineage = pd.read_csv('~/MAST/MAST/Data/Lineage.csv')
+df_mutations = pd.read_csv('~/MAST/Data/all_resistant_variants.csv')
+df_lineage = pd.read_csv('~/MAST/Data/Lineage.csv')
 
 
 
@@ -241,9 +241,9 @@ for key, value in gene_dict.items():
             resistances[key] = genes[key]
 
 
-template_path = os.path.expanduser('~/MAST/MAST/Data/Report_Template.docx')
+template_path = os.path.expanduser('~/MAST/Data/Report_Template.docx')
 doc = Document(template_path)
-patient_info_path = "~/MAST/MAST/Data/patient_info.csv"
+patient_info_path = "~/MAST/Data/patient_info.csv"
 output_dir = sys.argv[3]
 
 
@@ -263,21 +263,21 @@ if row.empty:
 patient_info = row.to_dict(orient='records')[0]
 
 genes = {
-    'Ethambutol': 'Resistant', 'Ethambutol_g': 'None',
-    'Pyrazinamide': 'Resistant', 'Pyrazinamide_g': 'None',
-    'Isoniazid': 'Resistant', 'Isoniazid_g': 'None',
-    'Rifampin': 'Resistant', 'Rifampin_g': 'None',
-    'Streptomycin': 'Resistant', 'Streptomycin_g': 'None',
-    'Ciprofloxacin': 'Resistant', 'Ciprofloxacin_g': 'None',
-    'Ofloxacin': 'Resistant', 'Ofloxacin_g': 'None',
-    'Moxifloxacin': 'Resistant', 'Moxifloxacin_g': 'None',
-    'Amikacin': 'Resistant', 'Amikacin_g': 'None',
-    'Kanamycin': 'Resistant', 'Kanamycin_g': 'None',
-    'Capreomycin': 'Resistant', 'Capreomycin_g': 'None',
+    'Ethambutol': 'Susceptible', 'Ethambutol_g': 'None',
+    'Pyrazinamide': 'Susceptible', 'Pyrazinamide_g': 'None',
+    'Isoniazid': 'Susceptible', 'Isoniazid_g': 'None',
+    'Rifampin': 'Susceptible', 'Rifampin_g': 'None',
+    'Streptomycin': 'Susceptible', 'Streptomycin_g': 'None',
+    'Ciprofloxacin': 'Susceptible', 'Ciprofloxacin_g': 'None',
+    'Ofloxacin': 'Susceptible', 'Ofloxacin_g': 'None',
+    'Moxifloxacin': 'Susceptible', 'Moxifloxacin_g': 'None',
+    'Amikacin': 'Susceptible', 'Amikacin_g': 'None',
+    'Kanamycin': 'Susceptible', 'Kanamycin_g': 'None',
+    'Capreomycin': 'Susceptible', 'Capreomycin_g': 'None',
 }
 for mutation, antibiotic in resistances.items():
     if antibiotic in genes:
-        genes[antibiotic] = 'Susceptible'
+        genes[antibiotic] = 'Resistant'
         genes[antibiotic + '_g'] = mutation
     elif mutation == 'Lineage':
         genes['Lineage'] = antibiotic
