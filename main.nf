@@ -60,7 +60,9 @@ process runQualityTrimming {
 
     script:
     """
-    filtlong --min_length 10 --keep_percent 90 $fastq_trimmed | gzip > 'quality_trimmed.fastq.gz'
+    seqkit rename $fastq_trimmed -o renamed.fastq
+filtlong --min_length 10 --keep_percent 90 renamed.fastq | gzip > quality_trimmed.fastq.gz
+
     """
 
 }
@@ -149,7 +151,7 @@ process runFilterVariants {
     
     script:
     """
-    bcftools view --include 'FMT/GT="1/1" && QUAL>=100 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0' $rawvariants > filteredvariants.vcf
+    bcftools view --include 'FMT/GT="1/1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0' $rawvariants > filteredvariants.vcf
     """
 }
 
@@ -197,9 +199,9 @@ workflow {
     qual_ch = runQualityTrimming(Channel.fromPath(params.data))
     allignment_ch = runAllignment(qual_ch, reference)
     sorted_ch = runSortAndIndex(allignment_ch)
-    trimmed_ch = runTrimmingIvar(sorted_ch, Channel.fromPath(params.primers))
-    variant_ch = runVariantCalling(trimmed_ch , reference)
+    variant_ch = runVariantCalling(sorted_ch , reference)
     raw_variant_ch = runFilterVariants(variant_ch)
     mutations_ch = runConvertToTSV(variant_ch)
     compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.outdir), Channel.fromPath(params.reference), Channel.fromPath(params.compare_mutations))
 }
+
