@@ -18,21 +18,25 @@ df_lineage = pd.read_csv('~/MAST/Data/Lineage.csv')
 
 
 
+# Normalize all DataFrames columns to uppercase
+df.rename(columns=str.upper, inplace=True)
+df_mutations.rename(columns=str.upper, inplace=True)
+df_lineage.rename(columns=str.upper, inplace=True)
+
 def find_matching_range(row, ranges):
     matching_row = ranges[
-        (ranges['position'] == row['POS']) & 
-        (ranges['reference_nucleotide'] == row['REF']) &
-        (ranges['alternative_nucleotide'] == row['ALT'])
+        (ranges['POSITION'] == row['POS']) & 
+        (ranges['REFERENCE_NUCLEOTIDE'] == row['REF']) &
+        (ranges['ALTERNATIVE_NUCLEOTIDE'] == row['ALT'])
     ]
     return matching_row if not matching_row.empty else None
-
 
 for _, pos_row in df.iterrows():
     match = find_matching_range(pos_row, df_mutations)
     if match is not None:
         for _, range_row in match.iterrows():
-            variant = range_row['variant']
-            drug = range_row['drug']
+            variant = range_row['VARIANT']
+            drug = range_row['DRUG']
             resistances[variant] = drug 
 
 for _, pos_row in df.iterrows():
@@ -40,7 +44,7 @@ for _, pos_row in df.iterrows():
     if match is not None:
         for _, range_row in match.iterrows():
             lineage = range_row['LIN']
-            resistances['Lineage'] = lineage 
+            resistances['Lineage'] = lineage
 
 
 
@@ -246,7 +250,6 @@ doc = Document(template_path)
 patient_info_path = "~/MAST/Data/patient_info.csv"
 output_dir = sys.argv[3]
 
-
 #Making the document
 os.makedirs(output_dir, exist_ok=True)
 doc = Document(template_path)
@@ -301,5 +304,8 @@ input_docx_path = os.path.join(output_dir, (f'{output_base_name}_report.docx'))
 
 doc.save(input_docx_path)
 print(f"Saved DOCX file to: {input_docx_path}")
+
+
+
 
 
