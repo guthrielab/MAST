@@ -18,3 +18,4 @@ dependencies:
   - filtlong
   - bedtools
   - gsl
+  - seqkit
