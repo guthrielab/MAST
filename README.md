@@ -2,7 +2,7 @@
 
 The Mycobacteria Amplicon Sequencing Tool (MAST) is a worklow made with nextflow used for Mycobacteria AMR prediction for amplicon sequences. The results are formatted into a customizable patient report, where both patient information and drug resistances are indicated. 
 
-#Installation
+## Installation
 
 This workflow was created and tested on macOS 14.5 (Sonoma). 
 
@@ -16,7 +16,7 @@ To clone the repository, please run the code below in your root folder. At this 
 git clone https://github.com/guthrielab/MAST
 ```
 
-##Running MAST
+## Running MAST
 
 To run it, please specify the fastq file that is to be analyzed, and the output directory for the results.
 
