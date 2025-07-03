@@ -18,23 +18,17 @@ git clone https://github.com/guthrielab/MAST
 
 This project uses a Conda environment to manage all dependencies.
 
-**Environment name:** `mtb_amplicon_env`  
-**Channels:**
-- `conda-forge`
-- `bioconda`
-- `defaults`
-
 **Packages:**
-- `python=3.10`
+- `python`
 - `pandas`
 - `biopython`
 - `python-docx`
 - `jinja2`
-- `bcftools=1.17`
+- `bcftools`
 - `samtools`
 - `ivar`
 - `bwa`
-- `freebayes=1.3.6`
+- `freebayes`
 - `cutadapt`
 - `filtlong`
 - `bedtools`
