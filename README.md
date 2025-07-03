@@ -16,8 +16,6 @@ git clone https://github.com/guthrielab/MAST
 
 ## Dependencies
 
-## 🧬 Dependencies
-
 This project uses a Conda environment to manage all dependencies.
 
 **Environment name:** `mtb_amplicon_env`  
