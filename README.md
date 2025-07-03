@@ -41,8 +41,6 @@ This project uses a Conda environment to manage all dependencies.
 - `gsl`
 - `seqkit`
 
-### 📦 Create the environment
-
 The environment for the workflow is installed using [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). Please make sure that Conda is installed. The environment is set up, and located in the /work/conda folder when the pipeline is ran. 
 
 
