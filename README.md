@@ -59,8 +59,7 @@ The contents of the final report can be customized using the `patient.csv` file,
 
 Each process run by MAST is cached in the `/work` directory.
 
-If an error occurs due to issues with the input, you do not need to re-run the entire pipeline from scratch.  
-Instead, use the `-resume` flag when re-running the pipeline:
+If an error occurs due to issues with the input, you do not need to re-run the entire pipeline from scratch. Instead, use the `-resume` flag when re-running the pipeline:
 
 ```bash
 nextflow run main.nf --data data.fq --outdir outdir -resume
