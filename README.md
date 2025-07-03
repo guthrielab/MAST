@@ -45,3 +45,22 @@ To run it, please specify the fastq file that is to be analyzed, and the output 
 ```
 nextflow run main.nf --data data.fq --outdir outdir
 ```
+
+MAST accepts single-end FASTQ files as input. The pipeline is optimized for amplicon sequencing data, applying appropriate depth thresholds for filtering. Once the reads are cleaned and aligned, MAST trims primers and detects variants. These variants are then cross-referenced with the [WHO](https://www.who.int/publications/i/item/9789240082410) catalogue of mutations, and compiled into a report. 
+
+## Customizing the Report
+
+The contents of the final report can be customized using the `patient.csv` file, located in the `/Data` folder.
+
+> **Important:** Ensure that the name of the FASTQ file matches the `barcode` column entry in the `patient.csv` file.  
+> If the names do not match, the pipeline will raise an error.
+
+## Caching and Resuming
+
+Each process run by MAST is cached in the `/work` directory.
+
+If an error occurs due to issues with the input, you do not need to re-run the entire pipeline from scratch.  
+Instead, use the `-resume` flag when re-running the pipeline:
+
+```bash
+nextflow run main.nf --data data.fq --outdir outdir -resume
