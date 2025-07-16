@@ -248,7 +248,8 @@ for key, value in gene_dict.items():
 template_path = os.path.expanduser('~/MAST/Data/Report_Template.docx')
 doc = Document(template_path)
 patient_info_path = "~/MAST/Data/patient_info.csv"
-output_dir = sys.argv[3]
+raw = os.path.join("~", "MAST", sys.argv[3])
+output_dir = os.path.expanduser(raw)
 
 #Making the document
 os.makedirs(output_dir, exist_ok=True)
@@ -269,7 +270,7 @@ genes = {
     'Ethambutol': 'Susceptible', 'Ethambutol_g': 'None',
     'Pyrazinamide': 'Susceptible', 'Pyrazinamide_g': 'None',
     'Isoniazid': 'Susceptible', 'Isoniazid_g': 'None',
-    'Rifampin': 'Susceptible', 'Rifampin_g': 'None',
+    'Rifampicin': 'Susceptible', 'Rifampicin_g': 'None',
     'Streptomycin': 'Susceptible', 'Streptomycin_g': 'None',
     'Ciprofloxacin': 'Susceptible', 'Ciprofloxacin_g': 'None',
     'Ofloxacin': 'Susceptible', 'Ofloxacin_g': 'None',
@@ -304,7 +305,6 @@ input_docx_path = os.path.join(output_dir, (f'{output_base_name}_report.docx'))
 
 doc.save(input_docx_path)
 print(f"Saved DOCX file to: {input_docx_path}")
-
 
 
 
