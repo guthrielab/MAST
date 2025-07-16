@@ -1,207 +1,139 @@
-#!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+// pipeline input parameters
 
-"""
-pipeline input paramaters
-"""
+// ========== PARAMETERS ==========
+params.data              = params.data              ?: '/Data/file'
+params.outdir            = params.outdir            ?: '/results'
+params.reference         = params.reference         ?: 'reference_H37RV.fasta'
+params.primers           = params.primers           ?: 'tb-amplicon-primers.bed'
+params.compare_mutations = params.compare_mutations ?: 'compare_mutations.py'
 
-params.data = '/Data/file'
-params.outdir = '/results'
-params.reference = 'reference_H37RV.fasta'
-params.primers = 'tb-amplicon-primers.bed'
-params.compare_mutations = 'compare_mutations.py'
+workflow {
+    // Define channels inside the workflow
+    primers_txt    = Channel.fromPath(params.primers).first()
+    reference      = Channel.fromPath(params.reference).first()
+    compare_script = Channel.fromPath(params.compare_mutations).first()
+    fastq_ch       = Channel.fromPath("${params.data}/*.fastq.gz")
+                         .ifEmpty { error "No FASTQ files found in directory: ${params.data}" }
+    sample_ch = fastq_ch.map { it.baseName }
 
+    // Chain processes per sample
+    qual_ch        = runQualityTrimming(fastq_ch)
+    align_ch       = runAlignment(qual_ch, reference)
+    sorted_ch      = runSortAndIndex(align_ch)
+    variant_ch     = runVariantCalling(sorted_ch, reference)
+    raw_variant_ch = runFilterVariants(variant_ch)
+    mutations_ch   = runConvertToTSV(variant_ch)
 
-log.info"""\
-        M T B   A M P L I C O N   T O O L
-        =================================
-        data: $params.data
-        outdir: $params.outdir
-        reference: $params.reference
-        primers: $params.primers
-        """
-
-process runTrimming {
-
-    conda 'envs/mtb_amplicon.yml'	
-
-    input:
-    file fastq
-    file primers
-
-    output:
-    file 'trimmed_file.fastq.gz'
-
-    script:
-    """
-    cutadapt_options=""
-    options=(" -g" " -a")
-    index=0
-    while IFS= read -r line; do
-         cutadapt_options+="\${options[index]} \$line"
-         index=\$(( (index + 1) % \${#options[@]} ))
-    done < "$primers"
-
-    echo "Constructed cutadapt options: \$cutadapt_options" > test.txt
-
-    cutadapt \$cutadapt_options -o trimmed_file.fastq.gz $fastq
-    """
+    // Compare mutations for each sample
+    compareMutations(
+        mutations_ch,
+        sample_ch,
+        Channel.value(params.outdir),
+        reference,
+        compare_script
+    )
 }
+
+// ========== PROCESS DEFINITIONS ==========
 
 process runQualityTrimming {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file fastq_trimmed
-
+      path fastq
     output:
-    file 'quality_trimmed.fastq.gz'
-
+      path "quality_trimmed_${fastq.baseName}.fastq.gz"
     script:
     """
-    seqkit rename $fastq_trimmed -o renamed.fastq
-filtlong --min_length 10 --keep_percent 90 renamed.fastq | gzip > quality_trimmed.fastq.gz
-
+    seqkit rename ${fastq} -o renamed.fastq
+    filtlong --min_length 10 --keep_percent 90 renamed.fastq | gzip > quality_trimmed_${fastq.baseName}.fastq.gz
     """
-
 }
- 
-process runAllignment {
 
-    conda 'envs/mtb_amplicon.yml'
-
+process runAlignment {
     input:
-    file trimmed_file
-    file reference
-
+      path trimmed
+      path reference
     output:
-    file 'alligned.sam'
-
+      path "aligned_${trimmed.baseName}.sam"
     script:
     """
-    bwa index -p goober $reference
-    bwa mem -P goober $trimmed_file > alligned.sam
+    bwa index -p goober ${reference}
+    bwa mem -P goober ${trimmed} > aligned_${trimmed.baseName}.sam
     """
 }
+
 
 process runSortAndIndex {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file alligned
-
+      path sam
     output:
-    file 'alligned_sorted.bam'
-
+      path "aligned_sorted_${sam.baseName}.bam"
     script:
     """
-    samtools sort $alligned > alligned_sorted.bam
-    samtools index alligned_sorted.bam
+    samtools sort ${sam} > aligned_sorted_${sam.baseName}.bam
+    samtools index aligned_sorted_${sam.baseName}.bam
     """
 }
 
 process runTrimmingIvar {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file alligned
-    file input_primers
-
+      path bam
+      path primers_txt
     output:
-    file 'trimmed_alligned_sorted.bam'
-
+      path "trimmed_${bam.baseName}.bam"
     script:
     """
-    ivar trim -b $input_primers -i $alligned -p trimmed_alligned_sorted.bam -q 2 -x 1000
+    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${bam.baseName}.bam -q 2 -x 1000
     """
 }
 
 process runVariantCalling {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file alligned
-    file reference
-    
-
+      path bam
+      path reference
     output:
-    file 'variants.vcf'
-
+      path "variants_${bam.baseName}.vcf"
     script:
     """
-    freebayes -f $reference $alligned > variants.vcf
+    freebayes -f ${reference} ${bam} > variants_${bam.baseName}.vcf
     """
 }
 
-
-
 process runFilterVariants {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file rawvariants
-    
+      path vcf
     output:
-    file 'filteredvariants.vcf'
-    
+      path "filtered_${vcf.baseName}.vcf"
     script:
     """
-    bcftools view --include 'FMT/GT="1/1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0' $rawvariants > filteredvariants.vcf
+    bcftools view --include 'FMT/GT="1/1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0' ${vcf} > filtered_${vcf.baseName}.vcf
     """
 }
 
 process runConvertToTSV {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file variants
-
+      path vcf
     output:
-    file "variants_h37ra_2.tsv"
-
+      path "variants_${vcf.baseName}.tsv"
     script:
     """
     (
     echo -e "CHROM\tPOS\tALT\tREF\tQUAL\tINFO" &&
-    bcftools query -f '%CHROM\t%POS\t%ALT\t%REF\t%QUAL\t%INFO\n' $variants
-    ) | awk -F'\t' 'BEGIN{OFS="\t"} {print \$1,\$2,\$3,\$4,\$5,\$6}' > variants_h37ra_2.tsv  
+    bcftools query -f '%CHROM\t%POS\t%ALT\t%REF\t%QUAL\t%INFO\n' $vcf
+    ) | awk -F'\t' 'BEGIN{OFS="\t"} {print \$1,\$2,\$3,\$4,\$5,\$6}' > variants_${vcf.baseName}.tsv
     """
 }
 
 process compareMutations {
-
-    conda 'envs/mtb_amplicon.yml'
-
     input:
-    file mutations
-    file data
-    file outdir
-    file reference
-    file compare_mutations
-
+      path mutations
+      val sample
+      val outdir
+      path reference
+      path script
     script:
     """
-    python3 ${compare_mutations} ${mutations} ${data.simpleName} ${outdir} ${reference}
+    python3 ${script} ${mutations} ${sample} ${outdir} ${reference}
     """
 }
 
-workflow {
-    primers_txt = Channel.fromPath(params.primers)
-    reference = Channel.fromPath(params.reference)
-
-
-    qual_ch = runQualityTrimming(Channel.fromPath(params.data))
-    allignment_ch = runAllignment(qual_ch, reference)
-    sorted_ch = runSortAndIndex(allignment_ch)
-    variant_ch = runVariantCalling(sorted_ch , reference)
-    raw_variant_ch = runFilterVariants(variant_ch)
-    mutations_ch = runConvertToTSV(variant_ch)
-    compareMutations(mutations_ch, Channel.fromPath(params.data), Channel.fromPath(params.outdir), Channel.fromPath(params.reference), Channel.fromPath(params.compare_mutations))
-}
 
