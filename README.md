@@ -1,4 +1,4 @@
-# Mycobacteria Amplicon Sequencing Tool (MAST)
+ # Mycobacteria Amplicon Sequencing Tool (MAST)
 
 The Mycobacteria Amplicon Sequencing Tool (MAST) is a worklow made with nextflow used for Mycobacteria AMR prediction for amplicon sequences. The results are formatted into a customizable patient report, where both patient information and drug resistances are indicated. 
 
@@ -40,10 +40,15 @@ The environment for the workflow is installed using [Conda](https://docs.conda.i
 
 ## Running MAST
 
-To run it, please specify the fastq file that is to be analyzed, and the output directory for the results.
+To run it, please specify the folder with fastq files that is to be analyzed, and the output directory for the results.
 
 ```
-nextflow run main.nf --data data.fq --outdir outdir
+nextflow run -c nextflow.config main.nf \
+  --data fastq_folder \
+  --outdir results \
+  --reference reference_H37RV.fasta \
+  --primers tb-amplicon-primers.bed \
+  --compare_mutations compare_mutations.py 
 ```
 
 MAST accepts single-end FASTQ files as input. The pipeline is optimized for amplicon sequencing data, applying appropriate depth thresholds for filtering. Once the reads are cleaned and aligned, MAST trims primers and detects variants. These variants are then cross-referenced with the [WHO](https://www.who.int/publications/i/item/9789240082410) catalogue of mutations, and compiled into a report. 
@@ -64,4 +69,10 @@ Each process run by MAST is cached in the `/work` directory.
 If an error occurs due to issues with the input, you do not need to re-run the entire pipeline from scratch. Instead, use the `-resume` flag when re-running the pipeline:
 
 ```bash
-nextflow run main.nf --data data.fq --outdir outdir -resume
+nextflow run -c nextflow.config main.nf \
+  --data fastq_folder \
+  --outdir results \
+  --reference reference_H37RV.fasta \
+  --primers tb-amplicon-primers.bed \
+  --compare_mutations compare_mutations.py \
+  -resume
