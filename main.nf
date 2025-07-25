@@ -15,7 +15,7 @@ workflow {
     compare_script = Channel.fromPath(params.compare_mutations).first()
     fastq_ch       = Channel.fromPath("${params.data}/*.fastq.gz")
                          .ifEmpty { error "No FASTQ files found in directory: ${params.data}" }
-    sample_ch = fastq_ch.map { it.baseName }
+    sample_ch = fastq_ch.map { file -> file.baseName.replaceFirst(/\.fastq$/, '') }
 
     // Chain processes per sample
     qual_ch        = runQualityTrimming(fastq_ch)
