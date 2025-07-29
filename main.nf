@@ -4,20 +4,18 @@ nextflow.enable.dsl=2
 // ========== PARAMETERS ==========
 params.data              = params.data              ?: '/Data/file'
 params.outdir            = params.outdir            ?: '/results'
-params.reference         = params.reference         ?: 'reference_H37RV.fasta'
-params.primers           = params.primers           ?: 'tb-amplicon-primers.bed'
-params.compare_mutations = params.compare_mutations ?: 'compare_mutations.py'
+reference         = file('reference_H37RV.fasta')
+primers           = file('tb-amplicon-primers.bed')
+compare_script    = file('compare_mutations.py')
 
 workflow {
-    // Define channels inside the workflow
-    primers_txt    = Channel.fromPath(params.primers).first()
-    reference      = Channel.fromPath(params.reference).first()
-    compare_script = Channel.fromPath(params.compare_mutations).first()
+    primers_txt    = Channel.fromPath('tb-amplicon-primers.bed').first()
+    reference      = Channel.fromPath('reference_H37RV.fasta').first()
+    compare_script = Channel.fromPath('compare_mutations.py').first()
     fastq_ch       = Channel.fromPath("${params.data}/*.fastq.gz")
                          .ifEmpty { error "No FASTQ files found in directory: ${params.data}" }
     sample_ch = fastq_ch.map { file -> file.baseName.replaceFirst(/\.fastq$/, '') }
 
-    // Chain processes per sample
     qual_ch        = runQualityTrimming(fastq_ch)
     align_ch       = runAlignment(qual_ch, reference)
     sorted_ch      = runSortAndIndex(align_ch)
@@ -25,7 +23,6 @@ workflow {
     raw_variant_ch = runFilterVariants(variant_ch)
     mutations_ch   = runConvertToTSV(variant_ch)
 
-    // Compare mutations for each sample
     compareMutations(
         mutations_ch,
         sample_ch,
@@ -136,5 +133,6 @@ process compareMutations {
     python3 ${script} ${mutations} ${sample} ${outdir} ${reference}
     """
 }
+
 
 
