@@ -1,27 +1,29 @@
+#!/usr/bin/env nextflow
 nextflow.enable.dsl=2
-// pipeline input parameters
 
-// ========== PARAMETERS ==========
-params.data              = params.data              ?: '/Data/file'
-params.outdir            = params.outdir            ?: '/results'
-reference         = file('reference_H37RV.fasta')
-primers           = file('tb-amplicon-primers.bed')
-compare_script    = file('compare_mutations.py')
+// —— PARAMETERS ——
+params.data            = params.data            ?: '/Data/file'
+params.outdir          = params.outdir          ?: '/results'
+params.reference       = params.reference       ?: 'reference_H37RV.fasta'
+params.primers         = params.primers         ?: 'tb-amplicon-primers.bed'
+params.compare_script  = params.compare_script  ?: 'compare_mutations.py'
 
 workflow {
-    primers_txt    = Channel.fromPath('tb-amplicon-primers.bed').first()
-    reference      = Channel.fromPath('reference_H37RV.fasta').first()
-    compare_script = Channel.fromPath('compare_mutations.py').first()
+    // —— CHANNEL SETUP ——
+    primers_txt    = Channel.fromPath(params.primers).first()
+    reference      = Channel.fromPath(params.reference).first()
+    compare_script = Channel.fromPath(params.compare_script).first()
     fastq_ch       = Channel.fromPath("${params.data}/*.fastq.gz")
-                         .ifEmpty { error "No FASTQ files found in directory: ${params.data}" }
-    sample_ch = fastq_ch.map { file -> file.baseName.replaceFirst(/\.fastq$/, '') }
+                         .ifEmpty { error "No FASTQ files found in: ${params.data}" }
+    sample_ch      = fastq_ch.map { it.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, '') }
 
-    qual_ch        = runQualityTrimming(fastq_ch)
-    align_ch       = runAlignment(qual_ch, reference)
-    sorted_ch      = runSortAndIndex(align_ch)
-    variant_ch     = runVariantCalling(sorted_ch, reference)
-    raw_variant_ch = runFilterVariants(variant_ch)
-    mutations_ch   = runConvertToTSV(variant_ch)
+    // —— PIPELINE STEPS ——
+    qual_ch         = runQualityTrimming(fastq_ch)
+    align_ch        = runAlignment(qual_ch, reference)
+    sorted_ch       = runSortAndIndex(align_ch)
+    variant_ch      = runVariantCalling(sorted_ch, reference)
+    filtered_vcf_ch = runFilterVariants(variant_ch)
+    mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
     compareMutations(
         mutations_ch,
@@ -32,7 +34,7 @@ workflow {
     )
 }
 
-// ========== PROCESS DEFINITIONS ==========
+// —— PROCESSES ——
 
 process runQualityTrimming {
     input:
@@ -59,7 +61,6 @@ process runAlignment {
     """
 }
 
-
 process runSortAndIndex {
     input:
       path sam
@@ -67,7 +68,7 @@ process runSortAndIndex {
       path "aligned_sorted_${sam.baseName}.bam"
     script:
     """
-    samtools sort ${sam} > aligned_sorted_${sam.baseName}.bam
+    samtools sort ${sam} -o aligned_sorted_${sam.baseName}.bam
     samtools index aligned_sorted_${sam.baseName}.bam
     """
 }
@@ -92,7 +93,7 @@ process runVariantCalling {
       path "variants_${bam.baseName}.vcf"
     script:
     """
-    freebayes -f ${reference} ${bam} > variants_${bam.baseName}.vcf
+    freebayes -p 1 -f ${reference} ${bam} > variants_${bam.baseName}.vcf
     """
 }
 
@@ -103,7 +104,9 @@ process runFilterVariants {
       path "filtered_${vcf.baseName}.vcf"
     script:
     """
-    bcftools view --include 'FMT/GT="1/1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0' ${vcf} > filtered_${vcf.baseName}.vcf
+    bcftools view -i \\
+      'FMT/GT="1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0.9' \\
+      ${vcf} > filtered_${vcf.baseName}.vcf
     """
 }
 
@@ -115,9 +118,9 @@ process runConvertToTSV {
     script:
     """
     (
-    echo -e "CHROM\tPOS\tALT\tREF\tQUAL\tINFO" &&
-    bcftools query -f '%CHROM\t%POS\t%ALT\t%REF\t%QUAL\t%INFO\n' $vcf
-    ) | awk -F'\t' 'BEGIN{OFS="\t"} {print \$1,\$2,\$3,\$4,\$5,\$6}' > variants_${vcf.baseName}.tsv
+      echo -e "CHROM\tPOS\tALT\tREF\tQUAL\tINFO"
+      bcftools query -f '%CHROM\\t%POS\\t%ALT\\t%REF\\t%QUAL\\t%INFO\\n' ${vcf}
+    ) > variants_${vcf.baseName}.tsv
     """
 }
 
@@ -133,6 +136,7 @@ process compareMutations {
     python3 ${script} ${mutations} ${sample} ${outdir} ${reference}
     """
 }
+
 
 
 
