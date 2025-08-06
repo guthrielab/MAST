@@ -6,14 +6,12 @@ from Bio import SeqIO
 from docx import Document
 from jinja2 import Template
 
-# Declaring inputs
 input_file        = sys.argv[1]
 output_base_name  = sys.argv[2]
 patient_dir       = sys.argv[3]
 fasta_file        = sys.argv[4]   
 resistances       = {}
 
-# Read tables
 df           = pd.read_csv(input_file, sep='\t')
 df_mutations = pd.read_csv('../../../Data/all_resistant_variants.csv')
 df_lineage   = pd.read_csv('../../../Data/Lineage.csv')
@@ -22,7 +20,6 @@ df.columns           = df.columns.str.upper()
 df_mutations.columns = df_mutations.columns.str.upper()
 df_lineage.columns   = df_lineage.columns.str.upper()
 
-# Map known resistance variants
 merged = pd.merge(
     df,
     df_mutations,
@@ -33,7 +30,6 @@ merged = pd.merge(
 for _, row in merged.iterrows():
     resistances[row['VARIANT']] = row['DRUG']
 
-# Map lineage
 merged_lin = pd.merge(
     df,
     df_lineage,
@@ -54,13 +50,12 @@ if not os.path.isabs(patient_dir):
     else:
         patient_dir = os.path.abspath(patient_dir)
 
-# report
 template_path     = '../../../Data/Report_Template.docx'
 patient_info_path = '../../../Data/patient_info.csv'
 os.makedirs(patient_dir, exist_ok=True)
+
 doc = Document(template_path)
 
-# patient info
 df_pat = pd.read_csv(patient_info_path)
 row    = df_pat[df_pat['Barcode'] == output_base_name]
 if row.empty:
@@ -82,6 +77,7 @@ status_fields = {
     'Capreomycin':'Susceptible','Capreomycin_g':'None'
 }
 
+
 for mut, drug in resistances.items():
     if drug in status_fields:
         status_fields[drug]        = 'Resistant'
@@ -101,10 +97,11 @@ for table in doc.tables:
             if '{{' in cell.text:
                 cell.text = Template(cell.text).render(context)
 
-# Save report 
 out_path = os.path.join(patient_dir, f'{output_base_name}_report.docx')
 doc.save(out_path)
 print(f"Saved DOCX file to: {out_path}")
+
+
 
 
 
