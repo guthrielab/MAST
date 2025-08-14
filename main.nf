@@ -13,21 +13,25 @@ workflow {
     primers_txt    = Channel.fromPath(params.primers).first()
     reference      = Channel.fromPath(params.reference).first()
     compare_script = Channel.fromPath(params.compare_script).first()
-    fastq_ch       = Channel.fromPath("${params.data}/*.fastq.gz")
-                         .ifEmpty { error "No FASTQ files found in: ${params.data}" }
-    sample_ch      = fastq_ch.map { it.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, '') }
+
+    fastq_ch = Channel
+      .fromPath("${params.data}/*.fastq.gz")
+      .ifEmpty { error "No FASTQ files found in: ${params.data}" }
+
+    // Pair each FASTQ with a stable sample id (prevents mispairing)
+    reads = fastq_ch.map { f -> tuple( f.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, ''), f ) }
 
     // —— PIPELINE STEPS ——
-    qual_ch         = runQualityTrimming(fastq_ch)
+    qual_ch         = runQualityTrimming(reads)
     align_ch        = runAlignment(qual_ch, reference)
     sorted_ch       = runSortAndIndex(align_ch)
+    // runTrimmingIvar exists but remains unused to preserve original behavior
     variant_ch      = runVariantCalling(sorted_ch, reference)
     filtered_vcf_ch = runFilterVariants(variant_ch)
     mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
     compareMutations(
         mutations_ch,
-        sample_ch,
         Channel.value(params.outdir),
         reference,
         compare_script
@@ -38,104 +42,117 @@ workflow {
 
 process runQualityTrimming {
     input:
-      path fastq
+      tuple val(id), path(fastq)
     output:
-      path "quality_trimmed_${fastq.baseName}.fastq.gz"
+      tuple val(id), path('quality_trimmed_*.fastq.gz')
     script:
     """
+    set -euo pipefail
     seqkit rename ${fastq} -o renamed.fastq
-    filtlong --min_length 10 --keep_percent 90 renamed.fastq | gzip > quality_trimmed_${fastq.baseName}.fastq.gz
+    filtlong --min_length 10 --keep_percent 90 renamed.fastq | gzip > quality_trimmed_${id}.fastq.gz
     """
 }
 
 process runAlignment {
     input:
-      path trimmed
-      path reference
+      tuple val(id), path(trimmed)
+      path(reference)
     output:
-      path "aligned_${trimmed.baseName}.sam"
+      tuple val(id), path('aligned_*.sam')
     script:
     """
+    set -euo pipefail
     bwa index -p goober ${reference}
-    bwa mem -P goober ${trimmed} > aligned_${trimmed.baseName}.sam
+    bwa mem -P goober ${trimmed} > aligned_${id}.sam
     """
 }
 
 process runSortAndIndex {
     input:
-      path sam
+      tuple val(id), path(sam)
     output:
-      path "aligned_sorted_${sam.baseName}.bam"
+      tuple val(id), path('aligned_sorted_*.bam')
     script:
     """
-    samtools sort ${sam} -o aligned_sorted_${sam.baseName}.bam
-    samtools index aligned_sorted_${sam.baseName}.bam
+    set -euo pipefail
+    samtools sort ${sam} -o aligned_sorted_${id}.bam
+    samtools index aligned_sorted_${id}.bam
     """
 }
 
 process runTrimmingIvar {
     input:
-      path bam
-      path primers_txt
+      tuple val(id), path(bam)
+      path(primers_txt)
     output:
-      path "trimmed_${bam.baseName}.bam"
+      tuple val(id), path('trimmed_*.bam')
     script:
     """
-    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${bam.baseName}.bam -q 2 -x 1000
+    set -euo pipefail
+    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${id}.bam -q 2 -x 1000
     """
 }
 
 process runVariantCalling {
     input:
-      path bam
-      path reference
+      tuple val(id), path(bam)
+      path(reference)
     output:
-      path "variants_${bam.baseName}.vcf"
+      tuple val(id), path('variants_*.vcf')
     script:
     """
-    freebayes -p 1 -f ${reference} ${bam} > variants_${bam.baseName}.vcf
+    set -euo pipefail
+    freebayes -p 1 -f ${reference} ${bam} > variants_${id}.vcf
     """
 }
 
 process runFilterVariants {
     input:
-      path vcf
+      tuple val(id), path(vcf)
     output:
-      path "filtered_${vcf.baseName}.vcf"
+      tuple val(id), path('filtered_*.vcf')
     script:
     """
-    bcftools view -i \\
-      'FMT/GT="1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0.9' \\
-      ${vcf} > filtered_${vcf.baseName}.vcf
+    set -euo pipefail
+    bcftools view -i \
+      'FMT/GT="1" && QUAL>=20 && FMT/DP>=10 && (FMT/AO)/(FMT/DP)>=0.9' \
+      ${vcf} > filtered_${id}.vcf
     """
 }
 
 process runConvertToTSV {
     input:
-      path vcf
+      tuple val(id), path(vcf)
     output:
-      path "variants_${vcf.baseName}.tsv"
+      tuple val(id), path('variants_*.tsv')
     script:
     """
+    set -euo pipefail
     (
-      echo -e "CHROM\tPOS\tALT\tREF\tQUAL\tINFO"
+      echo -e "CHROM\\tPOS\\tALT\\tREF\\tQUAL\\tINFO"
       bcftools query -f '%CHROM\\t%POS\\t%ALT\\t%REF\\t%QUAL\\t%INFO\\n' ${vcf}
-    ) > variants_${vcf.baseName}.tsv
+    ) > variants_${id}.tsv
     """
 }
 
 process compareMutations {
+    // no publishDir here; your Python writes directly to params.outdir
     input:
-      path mutations
-      val sample
-      val outdir
-      path reference
-      path script
+      tuple val(id), path(mutations)
+      val(outdir)
+      path(reference)
+      path(script)
+    // keep this optional so Nextflow doesn't require a file in the work dir
+    output:
+      path('*_report.docx'), optional: true
     script:
     """
-    python3 ${script} ${mutations} ${sample} ${outdir} ${reference}
+    set -euo pipefail
+    mkdir -p ${outdir}
+    python3 ${script} ${mutations} ${id} ${outdir} ${reference}
     """
 }
+
 
 
 
