@@ -18,7 +18,7 @@ workflow {
       .fromPath("${params.data}/*.fastq.gz")
       .ifEmpty { error "No FASTQ files found in: ${params.data}" }
 
-    // Pair each FASTQ with a stable sample id (prevents mispairing)
+
     reads = fastq_ch.map { f -> tuple( f.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, ''), f ) }
 
     // —— PIPELINE STEPS ——
@@ -136,13 +136,11 @@ process runConvertToTSV {
 }
 
 process compareMutations {
-    // no publishDir here; your Python writes directly to params.outdir
     input:
       tuple val(id), path(mutations)
       val(outdir)
       path(reference)
       path(script)
-    // keep this optional so Nextflow doesn't require a file in the work dir
     output:
       path('*_report.docx'), optional: true
     script:
