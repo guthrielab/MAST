@@ -13,8 +13,8 @@ fasta_file        = sys.argv[4]
 resistances       = {}
 
 df           = pd.read_csv(input_file, sep='\t')
-df_mutations = pd.read_csv('../../../Data/all_resistant_variants.csv')
-df_lineage   = pd.read_csv('../../../Data/Lineage.csv')
+df_mutations = pd.read_csv('../../../MAST/Data/all_resistant_variants.csv')
+df_lineage   = pd.read_csv('../../../MAST/Data/Lineage.csv')
 
 df.columns           = df.columns.str.upper()
 df_mutations.columns = df_mutations.columns.str.upper()
@@ -50,8 +50,8 @@ if not os.path.isabs(patient_dir):
     else:
         patient_dir = os.path.abspath(patient_dir)
 
-template_path     = '../../../Data/Report_Template.docx'
-patient_info_path = '../../../Data/patient_info.csv'
+template_path     = '../../../MAST/Data/Report_Template.docx'
+patient_info_path = '../../../MAST/Data/patient_info.csv'
 os.makedirs(patient_dir, exist_ok=True)
 
 doc = Document(template_path)
