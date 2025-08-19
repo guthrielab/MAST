@@ -2,11 +2,11 @@
 nextflow.enable.dsl=2
 
 // —— PARAMETERS ——
-params.data            = params.data            ?: '/Data/file'
-params.outdir          = params.outdir          ?: '/results'
-params.reference       = params.reference       ?: 'reference_H37RV.fasta'
-params.primers         = params.primers         ?: 'tb-amplicon-primers.bed'
-params.compare_script  = params.compare_script  ?: 'compare_mutations.py'
+params.data            = params.data            ?: 'MAST/Data/file'
+params.outdir          = params.outdir          ?: 'MAST/results'
+params.reference       = params.reference       ?: 'MAST/reference_H37RV.fasta'
+params.primers         = params.primers         ?: 'MAST/tb-amplicon-primers.bed'
+params.compare_script  = params.compare_script  ?: 'MAST/compare_mutations.py'
 
 workflow {
     // —— CHANNEL SETUP ——
