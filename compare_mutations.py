@@ -74,7 +74,9 @@ status_fields = {
     'Moxifloxacin':'Susceptible','Moxifloxacin_g':'None',
     'Amikacin':'Susceptible','Amikacin_g':'None',
     'Kanamycin':'Susceptible','Kanamycin_g':'None',
-    'Capreomycin':'Susceptible','Capreomycin_g':'None'
+    'Capreomycin':'Susceptible','Capreomycin_g':'None',
+    'Bedaquiline':'Susceptible','Bedaquiline_g':'None',
+    'Linezolid':'Susceptible','Linezolid_g':'None'
 }
 
 
