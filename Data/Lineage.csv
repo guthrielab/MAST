@@ -16,10 +16,11 @@ LIN,GENE,position,reference_nucleotide,alternative_nucleotide
 4.6,pknA,18091,G,A
 4.7,vapC30,716918,G,A
 4.8,ispE,1130526,G,A
-4.9,dnaK,420008,G,A
+4.9,dnaK,420009,G,A
 5,hisD,1799921,C,A
 6,fas,2847737,G,A
 7,hisD,1799774,C,T
 8,Rv1697,1922231,C,A
 9,valS,2750052,G,A
 bovis,dnaB,62768,A,G
+
