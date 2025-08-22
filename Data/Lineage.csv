@@ -20,7 +20,8 @@ LIN,GENE,position,reference_nucleotide,alternative_nucleotide
 5,hisD,1799921,C,A
 6,fas,2847737,G,A
 7,hisD,1799774,C,T
-8,Rv1697,1922231,C,A
+8,Rv1697,1922231,C,T
 9,valS,2750052,G,A
 bovis,dnaB,62768,A,G
+
 
