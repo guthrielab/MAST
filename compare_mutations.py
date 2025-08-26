@@ -79,13 +79,30 @@ status_fields = {
     'Linezolid':'Susceptible','Linezolid_g':'None'
 }
 
+# Create TSV output data structure
+tsv_data = {
+    'Sample': output_base_name,
+    'Lineage': 'Unknown'
+}
+
+# Initialize all drugs as susceptible in TSV
+drugs = ['Ethambutol', 'Pyrazinamide', 'Isoniazid', 'Rifampicin', 'Streptomycin',
+        'Ciprofloxacin', 'Ofloxacin', 'Moxifloxacin', 'Amikacin', 'Kanamycin',
+        'Capreomycin', 'Bedaquiline', 'Linezolid']
+
+for drug in drugs:
+    tsv_data[f'{drug}_Status'] = 'Susceptible'
+    tsv_data[f'{drug}_Mutation'] = 'None'
 
 for mut, drug in resistances.items():
     if drug in status_fields:
         status_fields[drug]        = 'Resistant'
         status_fields[f'{drug}_g'] = mut
+        tsv_data[f'{drug}_Status'] = 'Resistant'
+        tsv_data[f'{drug}_Mutation'] = mut
     elif mut == 'Lineage':
         status_fields['Lineage'] = drug
+        tsv_data['Lineage'] = drug
 
 context = {**patient_info, **status_fields}
 
@@ -99,9 +116,15 @@ for table in doc.tables:
             if '{{' in cell.text:
                 cell.text = Template(cell.text).render(context)
 
+# Save DOCX report
 out_path = os.path.join(patient_dir, f'{output_base_name}_report.docx')
 doc.save(out_path)
 print(f"Saved DOCX file to: {out_path}")
+
+# Save TSV report
+tsv_df = pd.DataFrame([tsv_data])
+tsv_path = os.path.join(patient_dir, f'{output_base_name}_results.tsv')
+tsv_df.to_csv(tsv_path, sep='\t', index=False)
 
 
 
