@@ -87,10 +87,10 @@ if not lineage_detected:
                             potential_bam = os.path.join(root, file)
                             try:
                                 with pysam.AlignmentFile(potential_bam, "rb") as test_bam:
-                                if test_bam.nreferences > 0:
-                                    bam_file = potential_bam
-                                    print(f"Found BAM file: {bam_file}")
-                                    break
+                                    if test_bam.nreferences > 0:
+                                        bam_file = potential_bam
+                                        print(f"Found BAM file: {bam_file}")
+                                        break
                             except:
                                 continue
                     if bam_file:
@@ -134,7 +134,7 @@ if not lineage_detected:
 
                         # Check if the consensus matches the expected reference base
                         if consensus == expected_base and consensus_fraction >= 0.9:
-                            resistances['Lineage] = lineage
+                            resistances['Lineage'] = lineage
                             print(f"Detected lineage {lineage} from reference position {pos}")
                             lineage_detected = True
                             break
