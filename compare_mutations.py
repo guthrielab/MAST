@@ -55,7 +55,7 @@ if not lineage_detected:
     bam_patterns = [
         f"*{output_base_name}*.bam",
         f"aligned_sorted_{output_base_name}.bam",
-        f"*sorted*.bam
+        f"*sorted*.bam"
     ]
     search_dirs = ['.', patient_dir]
     current_dir = os.getcwd()
