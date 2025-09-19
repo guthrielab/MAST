@@ -41,6 +41,9 @@ The environment for the workflow is installed using [Conda](https://docs.conda.i
 
 ## Running MAST
 
+To display help:
+```nextflow run MAST --help```
+
 To run it, please specify the folder with fastq files that is to be analyzed, and the output directory for the results.
 
 ```
