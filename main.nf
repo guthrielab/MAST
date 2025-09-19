@@ -1,6 +1,33 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+if (params.help) {
+  helpMessage()
+  exit 0
+}
+
+def helpMessage() {
+  log.info """
+  ====================================================
+  MAST - Mycobacteria Amplicon Sequencing Tool
+  ====================================================
+
+  Usage:
+  nextflow run MAST --input <input_dir> --output <output_dir> [options]
+
+  Required parameters:
+  --input                       Input directory containing FASTQ files
+  --output                      Output directory (default: results)
+  --help                        Show this help message
+
+  Optional parameters:
+  --reference                   Reference genome for alignment (default: Mtb H37Rv)
+  --primers                     BED file to trim primers (default: Amplicon primers MAST/tb-amplicon-primers.bed)
+
+  For more information, visit: https://github.com/guthrielab/MAST
+  """
+}
+
 // —— PARAMETERS ——
 params.data            = params.data            ?: 'MAST/Data/file'
 params.outdir          = params.outdir          ?: 'MAST/results'
