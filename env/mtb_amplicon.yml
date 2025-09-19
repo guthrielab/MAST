@@ -1,4 +1,4 @@
-name: mtb_amplicon_env
+name: mast
 channels:
   - conda-forge
   - bioconda
