@@ -13,11 +13,11 @@ def helpMessage() {
   ====================================================
 
   Usage:
-  nextflow run MAST --input <input_dir> --output <output_dir> [options]
+  nextflow run MAST --input <input_dir> --outdir <output_dir> [options]
 
   Required parameters:
   --input                       Input directory containing FASTQ files
-  --output                      Output directory (default: results)
+  --outdir                      Output directory (default: results)
   --help                        Show this help message
 
   Optional parameters:
@@ -29,7 +29,7 @@ def helpMessage() {
 }
 
 // —— PARAMETERS ——
-params.data            = params.data            ?: 'MAST/Data/file'
+params.input            = params.input            ?: 'MAST/Data/file'
 params.outdir          = params.outdir          ?: 'MAST/results'
 params.reference       = 'MAST/reference_H37RV.fasta'
 params.primers         = 'MAST/tb-amplicon-primers.bed'
@@ -42,8 +42,8 @@ workflow {
     compare_script = Channel.fromPath(params.compare_script).first()
 
     fastq_ch = Channel
-      .fromPath("${params.data}/*.fastq.gz")
-      .ifEmpty { error "No FASTQ files found in: ${params.data}" }
+      .fromPath("${params.input}/*.fastq.gz")
+      .ifEmpty { error "No FASTQ files found in: ${params.input}" }
 
 
     reads = fastq_ch.map { f -> tuple( f.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, ''), f ) }
