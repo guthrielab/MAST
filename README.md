@@ -30,7 +30,6 @@ This project uses a Conda environment to manage all dependencies.
 - `ivar`
 - `bwa`
 - `freebayes`
-- `cutadapt`
 - `filtlong`
 - `bedtools`
 - `gsl`
@@ -56,6 +55,9 @@ nextflow run MAST \
 MAST accepts single-end FASTQ files as input. The pipeline is optimized for amplicon sequencing data, applying appropriate depth thresholds for filtering. Once the reads are cleaned and aligned, MAST trims primers and detects variants. These variants are then cross-referenced with the [WHO](https://www.who.int/publications/i/item/9789240082410) catalogue of mutations, and compiled into a report. 
 
 The `--outdir` specifies the location of the final report. The report will be titled after the barcode of the fastq file. 
+
+## Workflow
+![MAST_workflow](https://github.com/guthrielab/MAST/blob/main/Data/MAST_workflow.png)
 
 ## Customizing the Report
 
