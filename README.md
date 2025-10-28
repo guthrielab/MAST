@@ -48,7 +48,7 @@ To run it, please specify the folder with fastq files that is to be analyzed, an
 
 ```
 nextflow run MAST \
-  --data {fastq_folder} \
+  --input {fastq_folder} \
   --outdir {results_directory}
 ```
 
@@ -62,6 +62,8 @@ The contents of the final report can be customized using the `patient.csv` file,
 
 > **Important:** Ensure that the name of the FASTQ file matches the `barcode` column entry in the `patient.csv` file.  
 > If the names do not match, the pipeline will raise an error.
+> 
+> There is a dataset to test the pipeline here: https://doi.org/10.5281/zenodo.17460753
 
 ## Caching and Resuming
 
@@ -71,7 +73,7 @@ If an error occurs due to issues with the input, you do not need to re-run the e
 
 ```
 nextflow run MAST \
-  --data {fastq_folder} \
+  --input {fastq_folder} \
   --outdir {results_directory} \
   -resume
 ```
