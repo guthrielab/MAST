@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17460753.svg)](https://doi.org/10.5281/zenodo.17460753)
  # Mycobacteria Amplicon Sequencing Tool (MAST)
 
 The Mycobacteria Amplicon Sequencing Tool (MAST) is a worklow made with nextflow used for Mycobacteria AMR prediction for amplicon sequences. The results are formatted into a customizable patient report, where both patient information and drug resistances are indicated. 
