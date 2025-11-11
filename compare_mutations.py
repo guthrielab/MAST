@@ -2,7 +2,7 @@
 import pandas as pd
 import sys
 import os
-from Bio import SeqIO        
+from Bio import SeqIO
 from docx import Document
 from jinja2 import Template
 import pysam
@@ -10,7 +10,7 @@ import pysam
 input_file        = sys.argv[1]
 output_base_name  = sys.argv[2]
 patient_dir       = sys.argv[3]
-fasta_file        = sys.argv[4]   
+fasta_file        = sys.argv[4]
 resistances       = {}
 
 df           = pd.read_csv(input_file, sep='\t')
@@ -21,6 +21,82 @@ df.columns           = df.columns.str.upper()
 df_mutations.columns = df_mutations.columns.str.upper()
 df_lineage.columns   = df_lineage.columns.str.upper()
 
+# Function to check if variant matches (handles indels)
+def variants_match(tsv_pos, tsv_ref, tsv_alt, csv_pos, csv_ref, csv_alt):
+    """
+    Check if variants match, considering indels and complex variants.
+    Handles cases where:
+    - Position might be off by 1 due to VCF notation
+    - Deletions can be represented differently
+    - Insertions can be represented differently
+    """
+    # Exact match
+    if tsv_pos == csv_pos and tsv_ref == csv_ref and tsv_alt == csv_alt:
+        return True
+
+    # Check for deletion variants
+    # TSV deletion: REF longer than ALT
+    # CSV might represent the same deletion at position or position+1
+    if len(tsv_ref) > len(tsv_alt):
+        # Deletion in TSV
+        if tsv_pos == csv_pos or tsv_pos == csv_pos - 1 or tsv_pos == csv_pos + 1:
+            # Check if it's the same deletion
+            if len(csv_ref) > len(csv_alt):
+                # Both are deletions, check if they represent same change
+                tsv_deleted = tsv_ref[len(tsv_alt):]
+                csv_deleted = csv_ref[len(csv_alt):]
+                if tsv_deleted in csv_deleted or csv_deleted in tsv_deleted:
+                    return True
+
+    # Check for insertion variants
+    # TSV insertion: ALT longer than REF
+    if len(tsv_alt) > len(tsv_ref):
+        # Insertion in TSV
+        if tsv_pos == csv_pos or tsv_pos == csv_pos - 1 or tsv_pos == csv_pos + 1:
+            if len(csv_alt) > len(csv_ref):
+                # Both are insertions
+                tsv_inserted = tsv_alt[len(tsv_ref):]
+                csv_inserted = csv_alt[len(csv_ref):]
+                if tsv_inserted in csv_inserted or csv_inserted in tsv_inserted:
+                    return True
+
+    # Check for position-shifted variants (common in VCF notation)
+    # Try position +/- 1
+    if abs(tsv_pos - csv_pos) <= 1:
+        # Check if the actual change is the same
+        if tsv_ref in csv_ref or csv_ref in tsv_ref:
+            if tsv_alt in csv_alt or csv_alt in tsv_alt:
+                return True
+
+    return False
+
+# Match variants using the new matching function
+matched_variants = []
+for _, tsv_row in df.iterrows():
+    tsv_pos = tsv_row['POS']
+    tsv_ref = tsv_row['REF']
+    tsv_alt = tsv_row['ALT']
+
+    for _, csv_row in df_mutations.iterrows():
+        csv_pos = csv_row['POSITION']
+        csv_ref = csv_row['REFERENCE_NUCLEOTIDE']
+        csv_alt = csv_row['ALTERNATIVE_NUCLEOTIDE']
+
+        if variants_match(tsv_pos, tsv_ref, tsv_alt, csv_pos, csv_ref, csv_alt):
+            matched_variants.append({
+                'VARIANT': csv_row['VARIANT'],
+                'DRUG': csv_row['DRUG'],
+                'POS': tsv_pos,
+                'REF': tsv_ref,
+                'ALT': tsv_alt
+            })
+            print(f"Matched variant: {csv_row['VARIANT']} at position {tsv_pos} ({tsv_ref}>{tsv_alt}) with CSV position {csv_pos} ({csv_ref}>{csv_alt})")
+
+# Store matched variants
+for match in matched_variants:
+    resistances[match['VARIANT']] = match['DRUG']
+
+# Original exact merge (keep for completeness)
 merged = pd.merge(
     df,
     df_mutations,
@@ -29,7 +105,9 @@ merged = pd.merge(
     how      = 'inner'
 )
 for _, row in merged.iterrows():
-    resistances[row['VARIANT']] = row['DRUG']
+    if row['VARIANT'] not in resistances:
+        resistances[row['VARIANT']] = row['DRUG']
+        print(f"Exact match variant: {row['VARIANT']} at position {row['POS']}")
 
 merged_lin = pd.merge(
     df,
@@ -97,7 +175,7 @@ if not lineage_detected:
                         break
                 if bam_file:
                     break
-            except (PermissionError, OsError) as e:
+            except (PermissionError, OSError) as e:
                 print(f"Cannot access {search_dir}: {e}")
                 continue
         if bam_file:
@@ -173,6 +251,7 @@ patient_info = row.to_dict(orient='records')[0]
 
 status_fields = {
     'Ethambutol':'Susceptible','Ethambutol_g':'None',
+    'Ethionamide':'Susceptible','Ethionamide_g':'None',
     'Pyrazinamide':'Susceptible','Pyrazinamide_g':'None',
     'Isoniazid':'Susceptible','Isoniazid_g':'None',
     'Rifampicin':'Susceptible','Rifampicin_g':'None',
@@ -194,7 +273,7 @@ tsv_data = {
 }
 
 # Initialize all drugs as susceptible in TSV
-drugs = ['Ethambutol', 'Pyrazinamide', 'Isoniazid', 'Rifampicin', 'Streptomycin',
+drugs = ['Ethambutol', 'Ethionamide', 'Pyrazinamide', 'Isoniazid', 'Rifampicin', 'Streptomycin',
         'Ciprofloxacin', 'Ofloxacin', 'Moxifloxacin', 'Amikacin', 'Kanamycin',
         'Capreomycin', 'Bedaquiline', 'Linezolid']
 
@@ -245,8 +324,3 @@ for drug in drugs:
         print(f"  {drug}: {status} (Mutation: {mutation})")
     else:
         print(f"  {drug}: {status}")
-
-
-
-
-
