@@ -52,8 +52,8 @@ workflow {
     qual_ch         = runQualityTrimming(reads)
     align_ch        = runAlignment(qual_ch, reference)
     sorted_ch       = runSortAndIndex(align_ch)
-    // runTrimmingIvar exists but remains unused to preserve original behavior
-    variant_ch      = runVariantCalling(sorted_ch, reference)
+    ivartrim_ch     = runPrimerTrimming(sorted_ch, primers_txt)
+    variant_ch      = runVariantCalling(ivartrim_ch, reference)
     filtered_vcf_ch = runFilterVariants(variant_ch)
     mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
@@ -107,7 +107,7 @@ process runSortAndIndex {
     """
 }
 
-process runTrimmingIvar {
+process PrimerTrimming {
     input:
       tuple val(id), path(bam)
       path(primers_txt)
@@ -116,7 +116,7 @@ process runTrimmingIvar {
     script:
     """
     set -euo pipefail
-    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${id}.bam -q 2 -x 1000
+    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${id}.bam -e
     """
 }
 
