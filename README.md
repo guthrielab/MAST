@@ -57,7 +57,7 @@ MAST accepts single-end FASTQ files as input. The pipeline is optimized for ampl
 The `--outdir` specifies the location of the final report. The report will be titled after the barcode of the fastq file. 
 
 ## Workflow
-![MAST_workflow](https://github.com/guthrielab/MAST/blob/main/Data/MAST_workflow.png)
+![MAST_workflow](https://github.com/guthrielab/MAST/blob/main/Data/MAST_workflow_v3.pdf)
 
 ## Customizing the Report
 
