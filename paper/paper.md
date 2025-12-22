@@ -18,7 +18,6 @@ authors:
   equal-contrib: true
   affiliation: 1
 - name: Maxim Federov
-  orcid: "XXXX-XXXX-XXXX-XXXX"
   equal-contrib: true
   affiliation: 1
 - name: Robert A. Petit III
