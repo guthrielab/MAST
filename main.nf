@@ -107,7 +107,7 @@ process runSortAndIndex {
     """
 }
 
-process PrimerTrimming {
+process runPrimerTrimming {
     input:
       tuple val(id), path(bam)
       path(primers_txt)
