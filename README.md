@@ -55,6 +55,28 @@ To display help:
 2. Extract the zip file and you should have a directory named `17460753` with **5 fastq.gz** files and a **patient_info.csv** file
 3. Replace the patient_info.csv file in the MAST/Data/ directory with the one in the `17460753` folder that you have just downloaded
 4. From the parent directory of MAST, run: `nextflow run MAST --input 17460753 --outdir tutorial_output`
+5. You should have the following prompt on your screen as the pipeline analyzes your test data
+   ```
+   N E X T F L O W   ~  version 24.04.3
+
+   Launching `MAST/main.nf` [angry_mahavira] DSL2 - revision: 5aa6077172
+
+   executor >  local (40)
+   [04/df42cf] runQualityTrimming (1) [100%] 5 of 5 ✔
+   [8f/a0ff96] runAlignment (4)       [100%] 5 of 5 ✔
+   [44/f9aa5b] runSortAndIndex (5)    [100%] 5 of 5 ✔
+   [e4/d72d0a] runPrimerTrimming (5)  [100%] 5 of 5 ✔
+   [12/1cab06] runVariantCalling (5)  [100%] 5 of 5 ✔
+   [73/50e189] runFilterVariants (5)  [100%] 5 of 5 ✔
+   [65/87e21f] runConvertToTSV (5)    [100%] 5 of 5 ✔
+   [15/8a08d2] compareMutations (5)   [100%] 5 of 5 ✔
+   Completed at: 11-Feb-2026 16:47:37
+   Duration    : 8m 45s
+   CPU hours   : 1.2
+   Succeeded   : 40
+
+Your tutorial_output directory should have 10 files in it, 5 DOCX files and 5 TSV files for each input file
+
 
 ## MAST Usage
 
