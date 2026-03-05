@@ -1,116 +1,312 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17460753.svg)](https://doi.org/10.5281/zenodo.17460753)
- # Mycobacteria Amplicon Sequencing Tool (MAST)
+# MAST: Mycobacteria Amplicon Sequencing Tool
 
-The Mycobacteria Amplicon Sequencing Tool (MAST) is a worklow made with nextflow used for Mycobacteria AMR prediction for amplicon sequences. The results are formatted into a customizable patient report, where both patient information and drug resistances are indicated. 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17460753.svg)](https://doi.org/10.5281/zenodo.17460753)
+
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A521.04.0-23aa62.svg?labelColor=000000)](https://www.nextflow.io/)
+[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
+
+## Introduction
+
+**MAST** is a [Nextflow](https://www.nextflow.io/) pipeline for antimicrobial resistance prediction from *Mycobacterium tuberculosis* amplicon sequencing data.  
+
+The pipeline performs quality control, alignment, primer trimming, variant calling, mutation filtering, and automated report generation. Detected variants are cross-referenced with the World Health Organization (WHO) [catalogue](https://www.who.int/publications/i/item/9789240082410) of mutations and formatted into a customizable patient-facing DOCX report alongside structured TSV outputs.
+
+
+## Pipeline Summary
+
+1. Read quality trimming  
+2. Alignment to the reference genome
+3. BAM sorting and indexing  
+4. Primer trimming  
+5. Variant calling  
+6. Variant filtering  
+7. Mutation comparison against WHO catalogue  
+8. Report generation (DOCX + TSV)
+
+
+
+## Requirements
+
+### Software
+
+- Java ≥ 17 (≤ 25)
+- Nextflow ≥ 24
+- Conda (recommended)
+
+### Tested on
+
+- macOS 14.5 (Sonoma)
+- Ubuntu 22.04.4 LTS
 
 ## Installation
 
-This workflow was created and tested on macOS 14.5 (Sonoma) and Linux Ubuntu 22.04.4 LTS. 
-
-The environment set up has been tested on Conda 23.7.4. 
-
-Please ensure you have [Nextflow](https://www.nextflow.io/docs/latest/install.html) on your machine before cloning the repository. Nextflow requires Java version 17 or later (up to 25) to run. Steps to install Nextflow and the required Java version is provided in the Installation page for Nextflow.
-
-To clone the repository, please run the code below. 
+Clone the repository:
 
 ```
 git clone https://github.com/guthrielab/MAST
 ```
 
+Install Nextflow (if not already installed): 
+
+https://www.nextflow.io/docs/latest/install.html
+
+
+Verify installation:
+
+```
+nextflow -version
+```
+
 ## Dependencies
 
-This project uses a Conda environment to manage all dependencies.
+MAST uses Conda for environment management.
 
-**Packages:**
-  - `python v3.10`
-  - `pandas v2.3.3`
-  - `biopython v1.86`
-  - `python-docx v1.2.0`
-  - `jinja2 v3.1.6`
-  - `bcftools v1.17`
-  - `samtools v1.21`
-  - `ivar v1.4.3`
-  - `bwa v0.7.18`
-  - `freebayes v1.3.6`
-  - `cutadapt v5.2`
-  - `filtlong v0.2.1`
-  - `bedtools v2.31.1`
-  - `gsl v2.7`
-  - `seqkit v2.12.0`
-  - `pysam v0.22.1`
+Main packages:
 
-The environment for the workflow is installed using [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). Please make sure that Conda is installed. The environment is set up, and located in the /work/conda folder when the pipeline is ran. 
+- python 3.10  
+- pandas 2.3.3  
+- biopython 1.86  
+- python-docx 1.2.0  
+- jinja2 3.1.6  
+- bcftools 1.17  
+- samtools 1.21  
+- ivar 1.4.3  
+- bwa 0.7.18  
+- freebayes 1.3.6  
+- cutadapt 5.2  
+- filtlong 0.2.1  
+- bedtools 2.31.1  
+- seqkit 2.12.0  
+- pysam 0.22.1  
 
+The environment is automatically created when running with:
 
-## Running MAST
-
-Once you clone the MAST repository, you can launch MAST from the parent directory where it was cloned by using the commands below.
-
-To display help:
-```nextflow run MAST --help```
+```
+-with-conda
+```
 
 ## MAST Tutorial
 
-1. Download the test data from the [Zenodo link](https://doi.org/10.5281/zenodo.17460753) into the parent directory where MAST is
-2. Extract the zip file and you should have a directory named `17460753` with **5 fastq.gz** files and a **patient_info.csv** file
-3. Replace the patient_info.csv file in the MAST/Data/ directory with the one in the `17460753` folder that you have just downloaded
-4. From the parent directory of MAST, run: `nextflow run MAST --input 17460753 --outdir tutorial_output`
-5. You should have the following prompt on your screen as the pipeline analyzes your test data
-   ```
-   N E X T F L O W   ~  version 24.04.3
+A small test dataset is available via Zenodo.
 
-   Launching `MAST/main.nf` [angry_mahavira] DSL2 - revision: 5aa6077172
+### 1. Download test data
 
-   executor >  local (40)
-   [04/df42cf] runQualityTrimming (1) [100%] 5 of 5 ✔
-   [8f/a0ff96] runAlignment (4)       [100%] 5 of 5 ✔
-   [44/f9aa5b] runSortAndIndex (5)    [100%] 5 of 5 ✔
-   [e4/d72d0a] runPrimerTrimming (5)  [100%] 5 of 5 ✔
-   [12/1cab06] runVariantCalling (5)  [100%] 5 of 5 ✔
-   [73/50e189] runFilterVariants (5)  [100%] 5 of 5 ✔
-   [65/87e21f] runConvertToTSV (5)    [100%] 5 of 5 ✔
-   [15/8a08d2] compareMutations (5)   [100%] 5 of 5 ✔
-   Completed at: 11-Feb-2026 16:47:37
-   Duration    : 8m 45s
-   CPU hours   : 1.2
-   Succeeded   : 40
-
-Your tutorial_output directory should have 10 files in it, 5 DOCX files and 5 TSV files for each input file
+Download the dataset from: https://doi.org/10.5281/zenodo.17460753
 
 
-## MAST Usage
+Place the downloaded file in the parent directory where `MAST` is located.
 
-To run MAST on your own dataset, please specify the folder with fastq files that is to be analyzed, and the output directory for the results.
-> **Important:** Ensure that the name of the FASTQ file matches the `barcode` column entry in the `patient_info.csv` file.  
-> If the names do not match, the pipeline will raise an error.
+### 2. Extract files
 
-The contents of the final report can be customized using the `patient.csv` file, located in the `MAST/Data` folder.
+After extraction, you should have a directory named:
+
+```
+17460753
+```
+
+This directory should contain:
+
+- 5 `fastq.gz` files  
+- `patient_info.csv`
+
+### 3. Replace patient_info.csv
+
+Replace:
+
+```
+MAST/Data/patient_info.csv
+```
+
+with the `patient_info.csv` file from the `17460753` folder.
+
+### 4. Run the tutorial
+
+From the parent directory of `MAST`, run:
 
 ```
 nextflow run MAST \
-  --input {fastq_folder} \
-  --outdir {results_directory}
+  --input 17460753 \
+  --outdir tutorial_output \
+  -with-conda
 ```
 
-MAST accepts single-end FASTQ files as input. The pipeline is optimized for amplicon sequencing data, applying appropriate depth thresholds for filtering. Once the reads are cleaned and aligned, MAST trims primers and detects variants. These variants are then cross-referenced with the [WHO](https://www.who.int/publications/i/item/9789240082410) catalogue of mutations, and compiled into a report. 
+### 5. Expected output
 
-The `--outdir` specifies the location of the final report. The report will be titled after the barcode of the fastq file. 
+You should see output similar to:
 
-## Workflow
-![MAST_workflow](https://github.com/guthrielab/MAST/blob/main/Data/MAST_workflow_v3.png)
+```
+N E X T F L O W   ~  version 24.04.3
+
+Launching `MAST/main.nf` [angry_mahavira] DSL2
+
+executor >  local (40)
+[04/df42cf] runQualityTrimming (1) [100%] 5 of 5 ✔
+[8f/a0ff96] runAlignment (4)       [100%] 5 of 5 ✔
+[44/f9aa5b] runSortAndIndex (5)    [100%] 5 of 5 ✔
+[e4/d72d0a] runPrimerTrimming (5)  [100%] 5 of 5 ✔
+[12/1cab06] runVariantCalling (5)  [100%] 5 of 5 ✔
+[73/50e189] runFilterVariants (5)  [100%] 5 of 5 ✔
+[65/87e21f] runConvertToTSV (5)    [100%] 5 of 5 ✔
+[15/8a08d2] compareMutations (5)   [100%] 5 of 5 ✔
+Completed
+```
+
+The `tutorial_output` directory should contain:
+
+- 5 DOCX reports  
+- 5 TSV files  
 
 
-## Caching and Resuming
-
-Each process run by MAST is cached in the `/work` directory.
-
-It is important to note that this folder contains intermediary files and can become large with time, so it is advisable to clean it up or delete the subdirectories when you have completed your analysis to avoid storage problems.
-
-If an error occurs due to issues with the input, you do not need to re-run the entire pipeline from scratch. Instead, use the `-resume` flag when re-running the pipeline:
+## Usage
 
 ```
 nextflow run MAST \
-  --input {fastq_folder} \
-  --outdir {results_directory} \
+  --input <fastq_folder> \
+  --outdir <results_directory> \
+  -with-conda
+```
+
+### Required parameters
+
+| Parameter | Description |
+|------------|-------------|
+| `--input`  | Directory containing single-end FASTQ files |
+| `--outdir` | Output directory for final reports |
+
+
+## Input
+### FASTQ files
+
+- Single-end sequences
+- `.fastq` or `.fastq.gz`
+- Filename must match barcode entry in `patient_info.csv`
+
+### patient_info.csv
+
+Located in:
+
+```
+MAST/Data/patient_info.csv
+```
+
+This file controls:
+
+- Patient metadata
+- Report customization
+- Barcode matching
+
+
+## Reference Genome
+
+The pipeline aligns reads to a reference genome for mutation detection.
+
+Default reference genome:
+
+*Mycobacterium tuberculosis* H37Rv
+
+NCBI RefSeq accession: NC_000962.3
+
+
+## Output
+
+For each input FASTQ file, MAST produces:
+
+- `<barcode>.docx` — formatted resistance report  
+- `<barcode>.tsv` — structured mutation output  
+
+
+## Running on HPC (SLURM)
+
+MAST can be executed on SLURM-based high-performance computing (HPC) systems.
+
+### Request compute resources
+
+If running on a SLURM cluster:
+
+```
+salloc --account=<your_account> \
+       --cpus-per-task=8 \
+       --mem=16G \
+       --time=4:00:00
+```
+
+Alternatively, submit the pipeline as a batch job using `sbatch` according to your institutional guidelines.
+
+### Work directory permissions
+
+On shared systems, you may not have permission to write to the default `work/` directory if launching from a restricted location.
+
+If you encounter permission errors related to the `work/` directory, define a writable work directory location:
+
+```
+export NXF_WORK=/scratch/$USER/nxf_work
+mkdir -p $NXF_WORK
+```
+
+Then run the pipeline normally. Nextflow will automatically use the directory defined in `NXF_WORK`.
+
+### Ensure Conda is available
+
+```
+which conda
+conda --version
+```
+
+If not found, load or install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+
+
+## Resuming a Run
+
+If a run fails:
+
+```
+nextflow run MAST \
+  --input <fastq_folder> \
+  --outdir <results_directory> \
+  -with-conda \
   -resume
 ```
+
+Do not change the work directory when using `-resume`.
+
+
+## Troubleshooting
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `conda: command not found` | Conda not in PATH | Install or load Conda |
+| `Process requirement exceeds available CPUs` | Running on login node | Request SLURM allocation |
+| `Unable to create directory .../work` | No write permissions | Set `NXF_WORK` |
+| `Another Nextflow instance is creating the conda environment` | Interrupted run | Run `nextflow clean -f` |
+
+
+## Caching
+
+Nextflow caches intermediate files in the `work/` directory.
+
+To clean:
+
+```
+nextflow clean -f
+```
+
+
+## Workflow Diagram
+
+![MAST Workflow](Data/MAST_workflow_v3.png)
+
+
+## Citation
+
+If you use MAST, please cite:
+
+https://doi.org/10.5281/zenodo.17460753
+
+
+## License
+
+GPL-3.0 license
+
+## Contact
+
+For questions or issues, please open a GitHub issue in the repository.
