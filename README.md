@@ -31,7 +31,7 @@ The pipeline performs quality control, alignment, primer trimming, variant calli
 
 - Java ≥ 17 (≤ 25)
 - Nextflow ≥ 24
-- Conda (recommended)
+- Conda (Miniconda recommended)
 
 ### Tested on
 
