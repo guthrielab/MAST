@@ -92,7 +92,7 @@ A small test dataset is available via Zenodo.
 
 ### 1. Download test data
 
-Download the dataset from: https://doi.org/10.5281/zenodo.17460753
+Download the dataset from: https://doi.org/10.5281/zenodo.18965360
 
 
 Place the downloaded file in the parent directory where `MAST` is located.
