@@ -37,6 +37,7 @@ The pipeline performs quality control, alignment, primer trimming, variant calli
 
 - macOS 14.5 (Sonoma)
 - Ubuntu 22.04.4 LTS
+- Conda-forge (x86_64 platform)
 
 ## Installation
 
@@ -278,6 +279,7 @@ Do not change the work directory when using `-resume`.
 | `Process requirement exceeds available CPUs` | Running on login node | Request SLURM allocation |
 | `Unable to create directory .../work` | No write permissions | Set `NXF_WORK` |
 | `Another Nextflow instance is creating the conda environment` | Interrupted run | Run `nextflow clean -f` |
+| `PackagesNotFoundError` | Apple Silicon Machine (osx-arm64) | Apple Silicon (arm64) chip is currently not supported due to Bioconda build limitations. Use a Linux machine or ensure you installed the x86_64 (intel) version of conda-forge on your Apple machine |
 
 
 ## Caching
