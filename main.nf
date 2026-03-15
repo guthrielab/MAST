@@ -68,6 +68,8 @@ workflow {
 // —— PROCESSES ——
 
 process runQualityTrimming {
+    container 'quay.io/idolawoye/mast_quality-trimming'
+
     input:
       tuple val(id), path(fastq)
     output:
@@ -81,6 +83,8 @@ process runQualityTrimming {
 }
 
 process runAlignment {
+    container 'quay.io/biocontainers/bwa:0.7.18--h577a1d6_2'
+
     input:
       tuple val(id), path(trimmed)
       path(reference)
@@ -95,6 +99,8 @@ process runAlignment {
 }
 
 process runSortAndIndex {
+    container 'quay.io/biocontainers/samtools:1.21--h96c455f_1'
+
     input:
       tuple val(id), path(sam)
     output:
@@ -108,6 +114,8 @@ process runSortAndIndex {
 }
 
 process runPrimerTrimming {
+    container 'quay.io/biocontainers/ivar:1.4.3--h43eeafb_0'
+
     input:
       tuple val(id), path(bam)
       path(primers_txt)
@@ -121,6 +129,8 @@ process runPrimerTrimming {
 }
 
 process runVariantCalling {
+    container 'quay.io/biocontainers/freebayes:1.3.9--hbefcdb2_1'
+
     input:
       tuple val(id), path(bam)
       path(reference)
@@ -134,6 +144,8 @@ process runVariantCalling {
 }
 
 process runFilterVariants {
+    container 'quay.io/biocontainers/bcftools:1.21--h3a4d415_1'
+
     input:
       tuple val(id), path(vcf)
     output:
@@ -148,6 +160,8 @@ process runFilterVariants {
 }
 
 process runConvertToTSV {
+    container 'quay.io/biocontainers/bcftools:1.21--h3a4d415_1'
+
     input:
       tuple val(id), path(vcf)
     output:
@@ -163,6 +177,8 @@ process runConvertToTSV {
 }
 
 process compareMutations {
+    container 'quay.io/idolawoye/mast_compare-mutations'
+
     input:
       tuple val(id), path(mutations)
       val(outdir)
