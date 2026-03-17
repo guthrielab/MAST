@@ -85,7 +85,7 @@ Main packages:
 The environment is automatically created when running with:
 
 ```
--with-conda
+-profile conda
 ```
 
 ## MAST Tutorial
@@ -130,7 +130,7 @@ From the parent directory of `MAST`, run:
 nextflow run MAST \
   --input 17460753 \
   --outdir tutorial_output \
-  -with-conda
+  -profile conda
 ```
 
 ### 5. Expected output
@@ -166,7 +166,7 @@ The `tutorial_output` directory should contain:
 nextflow run MAST \
   --input <fastq_folder> \
   --outdir <results_directory> \
-  -with-conda
+  -profile conda
 ```
 
 ### Required parameters
@@ -175,6 +175,7 @@ nextflow run MAST \
 |------------|-------------|
 | `--input`  | Directory containing single-end FASTQ files |
 | `--outdir` | Output directory for final reports |
+| `-profile` | Specify the container to work with e.g conda, docker, or singularity |
 
 
 ## Input
@@ -257,6 +258,18 @@ conda --version
 
 If not found, load or install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
+### Other Containers
+
+If you are having problems using conda due to dependency issues or you are working on a cluster that does not support conda. The dependencies are available as docker and singularity images.
+
+To use this option, ensure you have [Docker](https://docs.docker.com/engine/install/) or [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html) installed on your machine, then replace conda with docker/singularity in the profile flag such as:
+
+```
+nexflow run MAST \
+  --input <fastq_folder>
+  --outdir <results_directory>
+  -profile singularity
+```
 
 ## Resuming a Run
 
@@ -266,7 +279,7 @@ If a run fails:
 nextflow run MAST \
   --input <fastq_folder> \
   --outdir <results_directory> \
-  -with-conda \
+  -profile conda \
   -resume
 ```
 
@@ -281,7 +294,7 @@ Do not change the work directory when using `-resume`.
 | `Process requirement exceeds available CPUs` | Running on login node | Request SLURM allocation |
 | `Unable to create directory .../work` | No write permissions | Set `NXF_WORK` |
 | `Another Nextflow instance is creating the conda environment` | Interrupted run | Run `nextflow clean -f` |
-| `PackagesNotFoundError` | Apple Silicon Machine (osx-arm64) | Apple Silicon (arm64) chip is currently not supported due to Bioconda build limitations. Use a Linux machine or ensure you installed the x86_64 (intel) version of conda-forge on your Apple machine |
+| `PackagesNotFoundError` | Apple Silicon Machine (osx-arm64) | Apple Silicon (arm64) chip is currently not supported due to Bioconda build limitations. Use other containers such as Docker or Singularity |
 
 
 ## Caching
