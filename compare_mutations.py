@@ -14,7 +14,7 @@ mutations_csv     = sys.argv[5]
 lineage_csv       = sys.argv[6]
 template_docx     = sys.argv[7]
 patient_info_csv  = sys.argv[8]
-bam_file          = sys.argv[9]   # staged directly by Nextflow alongside its .bai
+bam_file          = sys.argv[9]
 
 resistances = {}
 
@@ -28,7 +28,8 @@ df_lineage.columns   = df_lineage.columns.str.upper()
 
 print(f"Loaded {len(df)} variants, {len(df_mutations)} mutation references, {len(df_lineage)} lineage references")
 
-# ── Exact match (fast vectorized merge) ──────────────────────────────────────
+# Match variants
+
 exact_merged = pd.merge(
     df,
     df_mutations,
@@ -42,24 +43,17 @@ for _, row in exact_merged.iterrows():
 
 print(f"Exact matches found: {len(exact_merged)}")
 
-# ── Fuzzy indel/position-shift matching (vectorized) ─────────────────────────
-# Strategy: for each TSV variant, find CSV rows within ±1 position, then
-# apply the indel sub-checks. We use a merge on a position range rather than
-# a nested Python loop, reducing the search space dramatically.
+# Match indels
 
-# Add position windows to the mutations reference table
 df_mutations['POS_LOW']  = df_mutations['POSITION'] - 1
 df_mutations['POS_HIGH'] = df_mutations['POSITION'] + 1
 
-# Cross-join candidates within ±1 position using a merge on an integer key,
-# then filter down — much faster than iterating every pair.
 df['_key'] = 1
 df_mutations['_key'] = 1
 candidates = pd.merge(df, df_mutations, on='_key').drop(columns='_key')
 df.drop(columns='_key', inplace=True)
 df_mutations.drop(columns='_key', inplace=True)
 
-# Keep only rows where positions are within ±1
 candidates = candidates[
     (candidates['POS'] >= candidates['POS_LOW']) &
     (candidates['POS'] <= candidates['POS_HIGH'])
@@ -107,7 +101,8 @@ for _, c in candidates.iterrows():
 
 print(f"Total resistance variants found: {len(resistances)}")
 
-# ── Lineage from mutation list ────────────────────────────────────────────────
+# Get Lineage from mutation list
+
 exact_lin = pd.merge(
     df,
     df_lineage,
@@ -122,8 +117,8 @@ if not exact_lin.empty:
     lineage_detected = True
     print(f"Lineage detected from mutation list: {exact_lin['LIN'].iloc[0]}")
 
-# ── Lineage from BAM reference position ──────────────────────────────────────
-# The BAI is staged by Nextflow alongside the BAM — pysam finds it automatically.
+# Check for H37rv lineage 4.9 if not lineage is reported
+
 if not lineage_detected:
     lineage_reference_positions = {
         420008: ('4.9', 'A')
@@ -169,7 +164,8 @@ if not lineage_detected:
     if not lineage_detected:
         print("No lineage detected from mutations or reference positions")
 
-# ── Build report ──────────────────────────────────────────────────────────────
+# Generate report
+
 os.makedirs(patient_dir, exist_ok=True)
 
 doc = Document(template_docx)
@@ -232,6 +228,7 @@ for table in doc.tables:
                 cell.text = Template(cell.text).render(context)
 
 # Save DOCX report
+
 out_path = os.path.join(patient_dir, f'{output_base_name}_report.docx')
 doc.save(out_path)
 print(f"Saved DOCX file to: {out_path}")
