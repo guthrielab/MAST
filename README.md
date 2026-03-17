@@ -34,12 +34,16 @@ The pipeline performs quality control, alignment, primer trimming, variant calli
 - Java ≥ 17 (≤ 25)
 - Nextflow ≥ 24
 - Conda (Miniconda recommended)
+- Docker (Optional)
+- Singularity (Optional)
 
 ### Tested on
 
 - macOS 14.5 (Sonoma)
 - Ubuntu 22.04.4 LTS
 - Conda-forge (x86_64 platform)
+- Singularity v3.10.0
+- Docker v20.10.8
 
 ## Installation
 
