@@ -2,7 +2,6 @@
 import pandas as pd
 import sys
 import os
-from Bio import SeqIO
 from docx import Document
 from jinja2 import Template
 import pysam
@@ -11,206 +10,148 @@ input_file        = sys.argv[1]
 output_base_name  = sys.argv[2]
 patient_dir       = sys.argv[3]
 fasta_file        = sys.argv[4]
-resistances       = {}
+mutations_csv     = sys.argv[5]
+lineage_csv       = sys.argv[6]
+template_docx     = sys.argv[7]
+patient_info_csv  = sys.argv[8]
+bam_file          = sys.argv[9]   # staged directly by Nextflow alongside its .bai
+
+resistances = {}
 
 df           = pd.read_csv(input_file, sep='\t')
-df_mutations = pd.read_csv('../../../MAST/Data/all_resistant_variants.csv')
-df_lineage   = pd.read_csv('../../../MAST/Data/Lineage.csv')
+df_mutations = pd.read_csv(mutations_csv)
+df_lineage   = pd.read_csv(lineage_csv)
 
 df.columns           = df.columns.str.upper()
 df_mutations.columns = df_mutations.columns.str.upper()
 df_lineage.columns   = df_lineage.columns.str.upper()
 
-# Function to check if variant matches (handles indels)
-def variants_match(tsv_pos, tsv_ref, tsv_alt, csv_pos, csv_ref, csv_alt):
-    """
-    Check if variants match, considering indels and complex variants.
-    Handles cases where:
-    - Position might be off by 1 due to VCF notation
-    - Deletions can be represented differently
-    - Insertions can be represented differently
-    """
-    # Exact match
-    if tsv_pos == csv_pos and tsv_ref == csv_ref and tsv_alt == csv_alt:
-        return True
+print(f"Loaded {len(df)} variants, {len(df_mutations)} mutation references, {len(df_lineage)} lineage references")
 
-    # Check for deletion variants
-    # TSV deletion: REF longer than ALT
-    # CSV might represent the same deletion at position or position+1
-    if len(tsv_ref) > len(tsv_alt):
-        # Deletion in TSV
-        if tsv_pos == csv_pos or tsv_pos == csv_pos - 1 or tsv_pos == csv_pos + 1:
-            # Check if it's the same deletion
-            if len(csv_ref) > len(csv_alt):
-                # Both are deletions, check if they represent same change
-                tsv_deleted = tsv_ref[len(tsv_alt):]
-                csv_deleted = csv_ref[len(csv_alt):]
-                if tsv_deleted in csv_deleted or csv_deleted in tsv_deleted:
-                    return True
-
-    # Check for insertion variants
-    # TSV insertion: ALT longer than REF
-    if len(tsv_alt) > len(tsv_ref):
-        # Insertion in TSV
-        if tsv_pos == csv_pos or tsv_pos == csv_pos - 1 or tsv_pos == csv_pos + 1:
-            if len(csv_alt) > len(csv_ref):
-                # Both are insertions
-                tsv_inserted = tsv_alt[len(tsv_ref):]
-                csv_inserted = csv_alt[len(csv_ref):]
-                if tsv_inserted in csv_inserted or csv_inserted in tsv_inserted:
-                    return True
-
-    # Check for position-shifted variants (common in VCF notation)
-    # Try position +/- 1
-    if abs(tsv_pos - csv_pos) <= 1:
-        # Check if the actual change is the same
-        if tsv_ref in csv_ref or csv_ref in tsv_ref:
-            if tsv_alt in csv_alt or csv_alt in tsv_alt:
-                return True
-
-    return False
-
-# Match variants using the new matching function
-matched_variants = []
-for _, tsv_row in df.iterrows():
-    tsv_pos = tsv_row['POS']
-    tsv_ref = tsv_row['REF']
-    tsv_alt = tsv_row['ALT']
-
-    for _, csv_row in df_mutations.iterrows():
-        csv_pos = csv_row['POSITION']
-        csv_ref = csv_row['REFERENCE_NUCLEOTIDE']
-        csv_alt = csv_row['ALTERNATIVE_NUCLEOTIDE']
-
-        if variants_match(tsv_pos, tsv_ref, tsv_alt, csv_pos, csv_ref, csv_alt):
-            matched_variants.append({
-                'VARIANT': csv_row['VARIANT'],
-                'DRUG': csv_row['DRUG'],
-                'POS': tsv_pos,
-                'REF': tsv_ref,
-                'ALT': tsv_alt
-            })
-            print(f"Matched variant: {csv_row['VARIANT']} at position {tsv_pos} ({tsv_ref}>{tsv_alt}) with CSV position {csv_pos} ({csv_ref}>{csv_alt})")
-
-# Store matched variants
-for match in matched_variants:
-    resistances[match['VARIANT']] = match['DRUG']
-
-# Original exact merge (keep for completeness)
-merged = pd.merge(
+# ── Exact match (fast vectorized merge) ──────────────────────────────────────
+exact_merged = pd.merge(
     df,
     df_mutations,
-    left_on  = ['POS','REF','ALT'],
-    right_on = ['POSITION','REFERENCE_NUCLEOTIDE','ALTERNATIVE_NUCLEOTIDE'],
+    left_on  = ['POS', 'REF', 'ALT'],
+    right_on = ['POSITION', 'REFERENCE_NUCLEOTIDE', 'ALTERNATIVE_NUCLEOTIDE'],
     how      = 'inner'
 )
-for _, row in merged.iterrows():
-    if row['VARIANT'] not in resistances:
-        resistances[row['VARIANT']] = row['DRUG']
-        print(f"Exact match variant: {row['VARIANT']} at position {row['POS']}")
+for _, row in exact_merged.iterrows():
+    resistances[row['VARIANT']] = row['DRUG']
+    print(f"Exact match: {row['VARIANT']} at position {row['POS']} ({row['REF']}>{row['ALT']})")
 
-merged_lin = pd.merge(
+print(f"Exact matches found: {len(exact_merged)}")
+
+# ── Fuzzy indel/position-shift matching (vectorized) ─────────────────────────
+# Strategy: for each TSV variant, find CSV rows within ±1 position, then
+# apply the indel sub-checks. We use a merge on a position range rather than
+# a nested Python loop, reducing the search space dramatically.
+
+# Add position windows to the mutations reference table
+df_mutations['POS_LOW']  = df_mutations['POSITION'] - 1
+df_mutations['POS_HIGH'] = df_mutations['POSITION'] + 1
+
+# Cross-join candidates within ±1 position using a merge on an integer key,
+# then filter down — much faster than iterating every pair.
+df['_key'] = 1
+df_mutations['_key'] = 1
+candidates = pd.merge(df, df_mutations, on='_key').drop(columns='_key')
+df.drop(columns='_key', inplace=True)
+df_mutations.drop(columns='_key', inplace=True)
+
+# Keep only rows where positions are within ±1
+candidates = candidates[
+    (candidates['POS'] >= candidates['POS_LOW']) &
+    (candidates['POS'] <= candidates['POS_HIGH'])
+]
+
+print(f"Candidate pairs after position filter: {len(candidates)}")
+
+for _, c in candidates.iterrows():
+    variant = c['VARIANT']
+    if variant in resistances:
+        continue  # already matched by exact merge
+
+    tsv_pos = c['POS'];   tsv_ref = c['REF'];   tsv_alt = c['ALT']
+    csv_pos = c['POSITION']; csv_ref = c['REFERENCE_NUCLEOTIDE']; csv_alt = c['ALTERNATIVE_NUCLEOTIDE']
+
+    matched = False
+
+    # Exact (already caught above, but included for completeness)
+    if tsv_pos == csv_pos and tsv_ref == csv_ref and tsv_alt == csv_alt:
+        matched = True
+
+    # Deletion check
+    elif len(str(tsv_ref)) > len(str(tsv_alt)) and len(str(csv_ref)) > len(str(csv_alt)):
+        tsv_deleted = str(tsv_ref)[len(str(tsv_alt)):]
+        csv_deleted = str(csv_ref)[len(str(csv_alt)):]
+        if tsv_deleted in csv_deleted or csv_deleted in tsv_deleted:
+            matched = True
+
+    # Insertion check
+    elif len(str(tsv_alt)) > len(str(tsv_ref)) and len(str(csv_alt)) > len(str(csv_ref)):
+        tsv_inserted = str(tsv_alt)[len(str(tsv_ref)):]
+        csv_inserted = str(csv_alt)[len(str(csv_ref)):]
+        if tsv_inserted in csv_inserted or csv_inserted in tsv_inserted:
+            matched = True
+
+    # Position-shifted SNP check
+    elif str(tsv_ref) in str(csv_ref) or str(csv_ref) in str(tsv_ref):
+        if str(tsv_alt) in str(csv_alt) or str(csv_alt) in str(tsv_alt):
+            matched = True
+
+    if matched:
+        resistances[variant] = c['DRUG']
+        print(f"Fuzzy match: {variant} at position {tsv_pos} ({tsv_ref}>{tsv_alt}) "
+              f"with CSV position {csv_pos} ({csv_ref}>{csv_alt})")
+
+print(f"Total resistance variants found: {len(resistances)}")
+
+# ── Lineage from mutation list ────────────────────────────────────────────────
+exact_lin = pd.merge(
     df,
     df_lineage,
-    left_on  = ['POS','REF','ALT'],
-    right_on = ['POSITION','REFERENCE_NUCLEOTIDE','ALTERNATIVE_NUCLEOTIDE'],
+    left_on  = ['POS', 'REF', 'ALT'],
+    right_on = ['POSITION', 'REFERENCE_NUCLEOTIDE', 'ALTERNATIVE_NUCLEOTIDE'],
     how      = 'inner'
 )
 
-# Check for lineage-specific reference position for samples without lineage
 lineage_detected = False
-if not merged_lin.empty:
-    resistances['Lineage'] = merged_lin['LIN'].iloc[0]
+if not exact_lin.empty:
+    resistances['Lineage'] = exact_lin['LIN'].iloc[0]
     lineage_detected = True
+    print(f"Lineage detected from mutation list: {exact_lin['LIN'].iloc[0]}")
 
-# If no lineage detected from mutation list, check ref position
+# ── Lineage from BAM reference position ──────────────────────────────────────
+# The BAI is staged by Nextflow alongside the BAM — pysam finds it automatically.
 if not lineage_detected:
     lineage_reference_positions = {
         420008: ('4.9', 'A')
     }
-    # Search for BAM file in parent dirs
-    bam_file = None
-    bam_patterns = [
-        f"*{output_base_name}*.bam",
-        f"aligned_sorted_{output_base_name}.bam",
-        f"*sorted*.bam"
-    ]
-    search_dirs = ['.', patient_dir]
-    current_dir = os.getcwd()
-    for i in range(1,4):
-        parent_dir = os.path.abspath(os.path.join(current_dir, *['..'] *i))
-        if os.path.exists(parent_dir):
-            search_dirs.append(parent_dir)
-    work_dirs = []
-    for search_dir in search_dirs[:]:
-        if os.path.exists(search_dir):
-            for root, dirs, files in os.walk(search_dir):
-                if 'work' in dirs:
-                    work_dirs.append(os.path.join(root, 'work'))
-                if any(f.endswith('.bam') for f in files):
-                    work_dirs.append(root)
-    search_dirs.extend(work_dirs)
-    search_dirs = list(set([d for d in search_dirs if os.path.exists(d)]))
 
-    print(f"Searching for BAM files in directories: {search_dirs}")
-
-    for search_dir in search_dirs:
-        for pattern in bam_patterns:
-            try:
-                for root, dirs, files in os.walk(search_dir):
-                    for file in files:
-                        if (file.endswith('.bam') and
-                            output_base_name in file and
-                            'sorted' in file.lower()):
-                            potential_bam = os.path.join(root, file)
-                            try:
-                                with pysam.AlignmentFile(potential_bam, "rb") as test_bam:
-                                    if test_bam.nreferences > 0:
-                                        bam_file = potential_bam
-                                        print(f"Found BAM file: {bam_file}")
-                                        break
-                            except:
-                                continue
-                    if bam_file:
-                        break
-                if bam_file:
-                    break
-            except (PermissionError, OSError) as e:
-                print(f"Cannot access {search_dir}: {e}")
-                continue
-        if bam_file:
-            break
-    if bam_file and os.path.exists(bam_file):
-        print(f"Using BAM file for lineage reference check: {bam_file}")
-
+    if os.path.exists(bam_file):
+        print(f"Checking BAM for lineage reference positions: {bam_file}")
         try:
-            # Check if BAM file has index and/or create one
-            bai_file = bam_file + '.bai'
-            if not os.path.exists(bai_file):
-                print(f"Indexing BAM file: {bam_file}")
-                pysam.index(bam_file)
-            # Open BAM file
             bam = pysam.AlignmentFile(bam_file, "rb")
             for pos, (lineage, expected_base) in lineage_reference_positions.items():
                 try:
-                    # Check coverage at ref position
-                    coverage = bam.count_coverage(contig=bam.references[0], start=pos-1, stop=pos)
+                    coverage = bam.count_coverage(
+                        contig=bam.references[0],
+                        start=pos - 1,
+                        stop=pos
+                    )
                     base_counts = {
                         'A': coverage[0][0],
                         'C': coverage[1][0],
                         'G': coverage[2][0],
                         'T': coverage[3][0]
                     }
-
                     total_bases = sum(base_counts.values())
-
                     print(f"Position {pos}: coverage={total_bases}, bases={base_counts}")
 
-                    if total_bases >= 10: # Minimum coverage threshold
+                    if total_bases >= 10:
                         consensus = max(base_counts.items(), key=lambda x: x[1])[0]
                         consensus_fraction = base_counts[consensus] / total_bases
-
-                        # Check if the consensus matches the expected reference base
                         if consensus == expected_base and consensus_fraction >= 0.9:
                             resistances['Lineage'] = lineage
                             print(f"Detected lineage {lineage} from reference position {pos}")
@@ -220,29 +161,20 @@ if not lineage_detected:
                     print(f"Error checking position {pos}: {e}")
                     continue
             bam.close()
-
         except Exception as e:
             print(f"Error processing BAM file {bam_file}: {e}")
+    else:
+        print(f"BAM file not found at expected path: {bam_file}")
 
     if not lineage_detected:
         print("No lineage detected from mutations or reference positions")
 
-if not os.path.isabs(patient_dir):
-    cwd = os.getcwd()
-    marker = os.sep + 'work' + os.sep
-    if marker in cwd:
-        pipeline_root = cwd.split(marker)[0]
-        patient_dir = os.path.join(pipeline_root, patient_dir)
-    else:
-        patient_dir = os.path.abspath(patient_dir)
-
-template_path     = '../../../MAST/Data/Report_Template.docx'
-patient_info_path = '../../../MAST/Data/patient_info.csv'
+# ── Build report ──────────────────────────────────────────────────────────────
 os.makedirs(patient_dir, exist_ok=True)
 
-doc = Document(template_path)
+doc = Document(template_docx)
 
-df_pat = pd.read_csv(patient_info_path)
+df_pat = pd.read_csv(patient_info_csv)
 row    = df_pat[df_pat['Barcode'] == output_base_name]
 if row.empty:
     print(f"No record found with Barcode: {output_base_name}", file=sys.stderr)
@@ -266,30 +198,26 @@ status_fields = {
     'Linezolid':'Susceptible','Linezolid_g':'None'
 }
 
-# Create TSV output data structure
-tsv_data = {
-    'Sample': output_base_name,
-    'Lineage': 'Unknown'
-}
+drugs = [
+    'Ethambutol', 'Ethionamide', 'Pyrazinamide', 'Isoniazid', 'Rifampicin',
+    'Streptomycin', 'Ciprofloxacin', 'Ofloxacin', 'Moxifloxacin', 'Amikacin',
+    'Kanamycin', 'Capreomycin', 'Bedaquiline', 'Linezolid'
+]
 
-# Initialize all drugs as susceptible in TSV
-drugs = ['Ethambutol', 'Ethionamide', 'Pyrazinamide', 'Isoniazid', 'Rifampicin', 'Streptomycin',
-        'Ciprofloxacin', 'Ofloxacin', 'Moxifloxacin', 'Amikacin', 'Kanamycin',
-        'Capreomycin', 'Bedaquiline', 'Linezolid']
-
+tsv_data = {'Sample': output_base_name, 'Lineage': 'Unknown'}
 for drug in drugs:
-    tsv_data[f'{drug}_Status'] = 'Susceptible'
+    tsv_data[f'{drug}_Status']   = 'Susceptible'
     tsv_data[f'{drug}_Mutation'] = 'None'
 
 for mut, drug in resistances.items():
     if drug in status_fields:
-        status_fields[drug]        = 'Resistant'
-        status_fields[f'{drug}_g'] = mut
-        tsv_data[f'{drug}_Status'] = 'Resistant'
+        status_fields[drug]          = 'Resistant'
+        status_fields[f'{drug}_g']   = mut
+        tsv_data[f'{drug}_Status']   = 'Resistant'
         tsv_data[f'{drug}_Mutation'] = mut
     elif mut == 'Lineage':
         status_fields['Lineage'] = drug
-        tsv_data['Lineage'] = drug
+        tsv_data['Lineage']      = drug
 
 context = {**patient_info, **status_fields}
 
@@ -309,16 +237,16 @@ doc.save(out_path)
 print(f"Saved DOCX file to: {out_path}")
 
 # Save TSV report
-tsv_df = pd.DataFrame([tsv_data])
+tsv_df   = pd.DataFrame([tsv_data])
 tsv_path = os.path.join(patient_dir, f'{output_base_name}_results.tsv')
 tsv_df.to_csv(tsv_path, sep='\t', index=False)
 
-# Print summary to console
+# Print summary
 print(f"\nResistance Profile Summary for {output_base_name}:")
 print(f"Lineage: {tsv_data['Lineage']}")
 print("\nDrug Resistance Status:")
 for drug in drugs:
-    status = tsv_data[f'{drug}_Status']
+    status   = tsv_data[f'{drug}_Status']
     mutation = tsv_data[f'{drug}_Mutation']
     if status == 'Resistant':
         print(f"  {drug}: {status} (Mutation: {mutation})")

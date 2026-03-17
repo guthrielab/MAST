@@ -23,6 +23,10 @@ def helpMessage() {
   Optional parameters:
   --reference                   Reference genome for alignment (default: Mtb H37Rv)
   --primers                     BED file to trim primers (default: Amplicon primers MAST/tb-amplicon-primers.bed)
+  --mutations_csv               Resistance mutations CSV (default: MAST/Data/all_resistant_variants.csv)
+  --lineage_csv                 Lineage CSV (default: MAST/Data/Lineage.csv)
+  --template_docx               Report template (default: MAST/Data/Report_Template.docx)
+  --patient_info_csv            Patient info CSV (default: MAST/Data/patient_info.csv)
 
   For more information, visit: https://github.com/guthrielab/MAST
   """
@@ -30,38 +34,57 @@ def helpMessage() {
 
 // —— PARAMETERS ——
 params.input            = params.input            ?: 'MAST/Data/file'
-params.outdir          = params.outdir          ?: 'MAST/results'
-params.reference       = 'MAST/reference_H37RV.fasta'
-params.primers         = 'MAST/tb-amplicon-primers.bed'
-params.compare_script  = 'MAST/compare_mutations.py'
+params.outdir           = params.outdir           ?: 'MAST/results'
+params.reference        = 'MAST/reference_H37RV.fasta'
+params.primers          = 'MAST/tb-amplicon-primers.bed'
+params.compare_script   = 'MAST/compare_mutations.py'
+params.mutations_csv    = 'MAST/Data/all_resistant_variants.csv'
+params.lineage_csv      = 'MAST/Data/Lineage.csv'
+params.template_docx    = 'MAST/Data/Report_Template.docx'
+params.patient_info_csv = 'MAST/Data/patient_info.csv'
 
 workflow {
     // —— CHANNEL SETUP ——
-    primers_txt    = Channel.fromPath(params.primers).first()
-    reference      = Channel.fromPath(params.reference).first()
-    compare_script = Channel.fromPath(params.compare_script).first()
+    primers_txt      = Channel.fromPath(params.primers).first()
+    reference        = Channel.fromPath(params.reference).first()
+    compare_script   = Channel.fromPath(params.compare_script).first()
+    mutations_csv    = Channel.fromPath(params.mutations_csv).first()
+    lineage_csv      = Channel.fromPath(params.lineage_csv).first()
+    template_docx    = Channel.fromPath(params.template_docx).first()
+    patient_info_csv = Channel.fromPath(params.patient_info_csv).first()
 
     fastq_ch = Channel
       .fromPath("${params.input}/*.fastq.gz")
       .ifEmpty { error "No FASTQ files found in: ${params.input}" }
-
 
     reads = fastq_ch.map { f -> tuple( f.baseName.replaceFirst(/\.fastq(?:\.gz)?$/, ''), f ) }
 
     // —— PIPELINE STEPS ——
     qual_ch         = runQualityTrimming(reads)
     align_ch        = runAlignment(qual_ch, reference)
+
+    // sorted_ch emits: tuple val(id), path(bam), path(bai)
+    // The BAI is carried forward so compareMutations can open the BAM
+    // with pysam without needing to re-index inside the container.
     sorted_ch       = runSortAndIndex(align_ch)
+
     ivartrim_ch     = runPrimerTrimming(sorted_ch, primers_txt)
     variant_ch      = runVariantCalling(ivartrim_ch, reference)
     filtered_vcf_ch = runFilterVariants(variant_ch)
     mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
+    // Join mutations TSV with sorted BAM+BAI on sample id.
+    // Result: tuple val(id), path(tsv), path(bam), path(bai)
+    mutations_with_bam = mutations_ch.join(sorted_ch)
+
     compareMutations(
-        mutations_ch,
-        Channel.value(params.outdir),
+        mutations_with_bam,
         reference,
-        compare_script
+        compare_script,
+        mutations_csv,
+        lineage_csv,
+        template_docx,
+        patient_info_csv
     )
 }
 
@@ -93,22 +116,26 @@ process runAlignment {
     script:
     """
     set -euo pipefail
-    bwa index -p goober ${reference}
-    bwa mem -P goober ${trimmed} > aligned_${id}.sam
+    bwa index ${reference}
+    zcat ${trimmed} > reads_${id}.fastq
+    bwa mem -t ${task.cpus} ${reference} reads_${id}.fastq > aligned_${id}.sam
+    rm reads_${id}.fastq
     """
 }
 
 process runSortAndIndex {
-    container 'quay.io/biocontainers/samtools:1.21--h96c455f_1'
+    container 'quay.io/biocontainers/samtools:1.18--h50ea8bc_1'
 
     input:
       tuple val(id), path(sam)
     output:
-      tuple val(id), path('aligned_sorted_*.bam')
+      // Emit both BAM and its index so downstream processes can stage
+      // them together — pysam needs the .bai next to the .bam
+      tuple val(id), path('aligned_sorted_*.bam'), path('aligned_sorted_*.bam.bai')
     script:
     """
     set -euo pipefail
-    samtools sort ${sam} -o aligned_sorted_${id}.bam
+    samtools sort -O bam -m 2G ${sam} -o aligned_sorted_${id}.bam
     samtools index aligned_sorted_${id}.bam
     """
 }
@@ -117,7 +144,9 @@ process runPrimerTrimming {
     container 'quay.io/biocontainers/ivar:1.4.3--h43eeafb_0'
 
     input:
-      tuple val(id), path(bam)
+      // Accept BAI in tuple even though ivar doesn't use it, so the
+      // channel structure stays consistent through the pipeline
+      tuple val(id), path(bam), path(bai)
       path(primers_txt)
     output:
       tuple val(id), path('trimmed_*.bam')
@@ -179,22 +208,33 @@ process runConvertToTSV {
 process compareMutations {
     container 'quay.io/idolawoye/mast_compare-mutations'
 
+    publishDir "${params.outdir}", mode: 'copy'
+
     input:
-      tuple val(id), path(mutations)
-      val(outdir)
+      // BAM and BAI are staged into the work directory by Nextflow.
+      // pysam will find the .bai automatically next to the .bam.
+      tuple val(id), path(mutations), path(bam), path(bai)
       path(reference)
       path(script)
+      path(mutations_csv)
+      path(lineage_csv)
+      path(template_docx)
+      path(patient_info_csv)
     output:
-      path('*_report.docx'), optional: true
+      path("${id}_report.docx")
+      path("${id}_results.tsv")
     script:
     """
     set -euo pipefail
-    mkdir -p ${outdir}
-    python3 ${script} ${mutations} ${id} ${outdir} ${reference}
+    python3 ${script} \
+        ${mutations} \
+        ${id} \
+        . \
+        ${reference} \
+        ${mutations_csv} \
+        ${lineage_csv} \
+        ${template_docx} \
+        ${patient_info_csv} \
+        ${bam}
     """
 }
-
-
-
-
-
