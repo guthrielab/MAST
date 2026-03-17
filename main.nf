@@ -13,11 +13,12 @@ def helpMessage() {
   ====================================================
 
   Usage:
-  nextflow run MAST --input <input_dir> --outdir <output_dir> [options]
+  nextflow run MAST --input <input_dir> --outdir <output_dir> -profile <conda>[options]
 
   Required parameters:
   --input                       Input directory containing FASTQ files
   --outdir                      Output directory (default: results)
+  -profile                      Signify what container to use (conda, docker, or singularity)
   --help                        Show this help message
 
   Optional parameters:
