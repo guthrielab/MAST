@@ -116,7 +116,7 @@ A small test dataset is available via Zenodo.
 
 ### 1. Download test data
 
-Download the dataset from: https://doi.org/10.5281/zenodo.18965360
+Download the dataset from: https://doi.org/10.5281/zenodo.19041451
 
 
 Place the downloaded file in the parent directory where `MAST` is located.
@@ -353,7 +353,7 @@ nextflow clean -f
 
 If you use MAST, please cite:
 
-https://doi.org/10.5281/zenodo.18965600
+https://doi.org/10.5281/zenodo.19166350
 
 
 ## License
