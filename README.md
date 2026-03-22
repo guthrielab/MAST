@@ -45,6 +45,24 @@ The pipeline performs quality control, alignment, primer trimming, variant calli
 - Singularity v3.10.0
 - Docker v20.10.8
 
+## Execution Modes
+
+MAST supports multiple execution environments via Nextflow profiles:
+
+| Profile | Description | Recommended for |
+|--------|------------|----------------|
+| `conda` | Uses Conda environments | Recommended for most users |
+| `singularity` | Uses Singularity containers | HPC environments |
+| `docker` | Uses Docker containers | Local development |
+
+Example:
+```
+nextflow run MAST \
+  --input <fastq_folder> \
+  --outdir <results_directory> \
+  -profile conda
+```
+
 ## Installation
 
 Clone the repository:
@@ -179,7 +197,7 @@ nextflow run MAST \
 |------------|-------------|
 | `--input`  | Directory containing single-end FASTQ files |
 | `--outdir` | Output directory for final reports |
-| `-profile` | Specify the container to work with e.g conda, docker, or singularity |
+| `-profile` | Execution environment (`conda`, `docker`, or `singularity`) |
 
 
 ## Input
@@ -251,7 +269,9 @@ export NXF_WORK=/scratch/$USER/nxf_work
 mkdir -p $NXF_WORK
 ```
 
-Then run the pipeline normally. Nextflow will automatically use the directory defined in `NXF_WORK`.
+Then run the pipeline normally. 
+
+Nextflow will automatically use the directory defined in `NXF_WORK`.
 
 ### Ensure Conda is available
 
@@ -262,18 +282,29 @@ conda --version
 
 If not found, load or install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-### Other Containers
+### Using Docker or Singularity
 
-If you are having problems using conda due to dependency issues or you are working on a cluster that does not support conda. The dependencies are available as docker and singularity images.
+If Conda is not available or causes dependency issues, you can run MAST using containers.
 
-To use this option, ensure you have [Docker](https://docs.docker.com/engine/install/) or [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html) installed on your machine, then replace conda with docker/singularity in the profile flag such as:
+To use this option, ensure [Docker](https://docs.docker.com/engine/install/) or [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html) is installed, then run:
 
+Singularity:
 ```
-nexflow run MAST \
-  --input <fastq_folder>
-  --outdir <results_directory>
+nextflow run MAST \
+  --input <fastq_folder> \
+  --outdir <results_directory> \
   -profile singularity
 ```
+
+Docker:
+```
+nextflow run MAST \
+  --input <fastq_folder> \
+  --outdir <results_directory> \
+  -profile docker
+```
+
+Note: Singularity is recommended for HPC environments.
 
 ## Resuming a Run
 
@@ -299,6 +330,7 @@ Do not change the work directory when using `-resume`.
 | `Unable to create directory .../work` | No write permissions | Set `NXF_WORK` |
 | `Another Nextflow instance is creating the conda environment` | Interrupted run | Run `nextflow clean -f` |
 | `PackagesNotFoundError` | Apple Silicon Machine (osx-arm64) | Apple Silicon (arm64) chip is currently not supported due to Bioconda build limitations. Use other containers such as Docker or Singularity |
+| `permission denied` (Docker) | Container runs as root or mismatched user | Run with: `-process.containerOptions "-u $(id -u):$(id -g)"` or use Singularity |
 
 
 ## Caching
@@ -321,7 +353,7 @@ nextflow clean -f
 
 If you use MAST, please cite:
 
-https://doi.org/10.5281/zenodo.17460753
+https://doi.org/10.5281/zenodo.18965600
 
 
 ## License
