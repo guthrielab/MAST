@@ -1,8 +1,8 @@
 # MAST: Mycobacteria Amplicon Sequencing Tool
 
-Workflow: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18965599.svg)](https://doi.org/10.5281/zenodo.19166350)
+Workflow: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19166350.svg)](https://doi.org/10.5281/zenodo.19166350)
 
-Dataset: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18965360.svg)](https://doi.org/10.5281/zenodo.19041451)
+Dataset: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19041451.svg)](https://doi.org/10.5281/zenodo.19041451)
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A521.04.0-23aa62.svg?labelColor=000000)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
