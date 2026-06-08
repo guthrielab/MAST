@@ -26,7 +26,7 @@ def helpMessage() {
   --primers                     BED file to trim primers (default: Amplicon primers MAST/tb-amplicon-primers.bed)
   --mutations_csv               Resistance mutations CSV (default: MAST/Data/all_resistant_variants.csv)
   --lineage_csv                 Lineage CSV (default: MAST/Data/Lineage.csv)
-  --template_docx               Report template (default: MAST/Data/Report_Template.docx)
+  --template_docx               Report template (default: MAST/Data/tNGS_Report_Template.docx)
   --patient_info_csv            Patient info CSV (default: MAST/Data/patient_info.csv)
 
   For more information, visit: https://github.com/guthrielab/MAST
@@ -41,8 +41,9 @@ params.primers          = 'MAST/tb-amplicon-primers.bed'
 params.compare_script   = 'MAST/compare_mutations.py'
 params.mutations_csv    = 'MAST/Data/all_resistant_variants.csv'
 params.lineage_csv      = 'MAST/Data/Lineage.csv'
-params.template_docx    = 'MAST/Data/Report_Template.docx'
+params.template_docx    = 'MAST/Data/tNGS_Report_Template.docx'
 params.patient_info_csv = 'MAST/Data/patient_info.csv'
+params.regions_bed      = 'MAST/regions.bed'
 
 workflow {
     // —— CHANNEL SETUP ——
@@ -53,6 +54,7 @@ workflow {
     lineage_csv      = Channel.fromPath(params.lineage_csv).first()
     template_docx    = Channel.fromPath(params.template_docx).first()
     patient_info_csv = Channel.fromPath(params.patient_info_csv).first()
+    regions_bed      = Channel.fromPath(params.regions_bed).first()
 
     fastq_ch = Channel
       .fromPath("${params.input}/*.fastq.gz")
@@ -85,7 +87,8 @@ workflow {
         mutations_csv,
         lineage_csv,
         template_docx,
-        patient_info_csv
+        patient_info_csv,
+        regions_bed
     )
 }
 
@@ -118,9 +121,9 @@ process runAlignment {
     """
     set -euo pipefail
     bwa index ${reference}
-    zcat ${trimmed} > reads_${id}.fastq
-    bwa mem -t ${task.cpus} ${reference} reads_${id}.fastq > aligned_${id}.sam
-    rm reads_${id}.fastq
+
+    bwa mem -t ${task.cpus} ${reference} quality_trimmed_${id}.fastq.gz > aligned_${id}.sam
+
     """
 }
 
@@ -221,6 +224,7 @@ process compareMutations {
       path(lineage_csv)
       path(template_docx)
       path(patient_info_csv)
+      path(regions_bed)
     output:
       path("${id}_report.docx")
       path("${id}_results.tsv")
@@ -236,6 +240,7 @@ process compareMutations {
         ${lineage_csv} \
         ${template_docx} \
         ${patient_info_csv} \
-        ${bam}
+        ${bam} \
+        ${regions_bed}
     """
 }
