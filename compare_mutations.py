@@ -3,11 +3,6 @@
 M. tuberculosis tNGS resistance-prediction pipeline.
 
 Renders the branded clinical report (tNGS_Report_Template.docx) with docxtpl.
-The Detailed Findings table is built in Python (python-docx) AFTER docxtpl
-renders the scalar/RichText tags, so we avoid docxtpl's fragile {%tr%} row-loop
-(which caused: jinja2 TemplateSyntaxError "unknown tag 'endfor'").
-
-Install once:  pip install docxtpl
 
 CLI (matches the Nextflow process; trailing args are optional for stand-alone use):
     compare_mutations.py <variants.tsv> <id> <patient_dir> <reference.fasta> \
@@ -28,7 +23,7 @@ from docx.shared import RGBColor
 from docxtpl import DocxTemplate, RichText
 
 # --------------------------------------------------------------------------- #
-#  Arguments  (positional, with sensible fall-backs)
+#  INputs
 # --------------------------------------------------------------------------- #
 input_file         = sys.argv[1]
 output_base_name   = sys.argv[2]
@@ -38,12 +33,12 @@ mutations_csv_path = sys.argv[5] if len(sys.argv) > 5 else '../../../MAST/Data/a
 lineage_csv_path   = sys.argv[6] if len(sys.argv) > 6 else '../../../MAST/Data/Lineage.csv'
 template_path      = sys.argv[7] if len(sys.argv) > 7 else '../../../MAST/Data/tNGS_Report_Template.docx'
 patient_info_path  = sys.argv[8] if len(sys.argv) > 8 else '../../../MAST/Data/patient_info.csv'
-bam_arg            = sys.argv[9] if len(sys.argv) > 9 else None   # BAM staged by Nextflow
+bam_arg            = sys.argv[9] if len(sys.argv) > 9 else None
 regions_bed        = sys.argv[10] if len(sys.argv) > 10 else os.environ.get('TB_REGIONS_BED', 'regions.bed')
-QC_MIN_DEPTH       = float(os.environ.get('TB_QC_DEPTH', '30'))   # PASS threshold (x)
+QC_MIN_DEPTH       = float(os.environ.get('TB_QC_DEPTH', '30'))
 
 # --------------------------------------------------------------------------- #
-#  Amino-acid + formatting helpers
+#  Amino-acid abbrev conversion
 # --------------------------------------------------------------------------- #
 AA_MAP = {
     'Ala': 'A', 'Arg': 'R', 'Asn': 'N', 'Asp': 'D', 'Cys': 'C',
@@ -84,7 +79,7 @@ DEFAULT_CONF = 'Moderate'
 LINEAGE_DESC = {
     '1': '(Indo-Oceanic lineage)', '2': '(East Asian lineage)',
     '2.2': '(East Asian/Beijing lineage)', '3': '(East African-Indian lineage)',
-    '4': '(Euro-American lineage)', '4.9': '(Euro-American lineage)',
+    '4': '(Euro-American lineage)', '4.9': '(Euro-American lineage/H37Rv-like)',
     '5': '(West African 1 lineage)', '6': '(West African 2 lineage)',
 }
 
@@ -102,14 +97,8 @@ df_lineage.columns   = df_lineage.columns.str.upper()
 HAS_CONF = 'CONFIDENCE' in df_mutations.columns
 
 # --------------------------------------------------------------------------- #
-#  Per-variant consensus -> confidence  (>0.9 High, >0.8 Moderate, else Low)
+#  Per-variant consensus -> confidence  (>=0.9 High, >0.8 Moderate)
 # --------------------------------------------------------------------------- #
-# Consensus (observed variant allele fraction) is sourced, in order, from:
-#   1. an explicit frequency column in the TSV (other pipelines), else
-#   2. the freebayes INFO field as AO/DP  (this MAST pipeline), else
-#   3. the staged BAM (SNVs only).
-# NOTE: freebayes AF is the haploid genotype call (==1 here), NOT the observed
-# fraction, so we use AO/DP for the real consensus.
 FREQ_CANDIDATES = ['CONSENSUS', 'VAF', 'ALT_FREQ', 'ALT_FREQUENCY',
                    'FREQ', 'FREQUENCY', 'ALLELE_FREQUENCY']
 FREQ_COL = os.environ.get('TB_FREQ_COL', '').upper() or \
@@ -118,7 +107,7 @@ HAS_INFO = 'INFO' in df.columns
 print(f"Consensus source: "
       f"{FREQ_COL or ('INFO (AO/DP)' if HAS_INFO else 'BAM' if bam_arg else 'none')}")
 
-# open the BAM once for consensus look-ups (best-effort; SNVs only)
+# use BAM for consensus look-ups
 cons_bam = None
 if bam_arg and os.path.exists(bam_arg):
     try:
@@ -130,7 +119,6 @@ if bam_arg and os.path.exists(bam_arg):
 
 
 def to_fraction(value):
-    """Coerce a frequency cell to a 0-1 fraction (handles 0-100 percentages)."""
     try:
         x = float(value)
     except (TypeError, ValueError):
@@ -212,7 +200,7 @@ def variants_match(tsv_pos, tsv_ref, tsv_alt, csv_pos, csv_ref, csv_alt):
 
 
 # --------------------------------------------------------------------------- #
-#  Match resistance variants  (capture per-variant consensus)
+#  Match resistance variants
 # --------------------------------------------------------------------------- #
 hits = defaultdict(dict)   # drug -> {variant: {'cons': float|None, 'db': str|None}}
 
@@ -324,9 +312,6 @@ if not lineage_detected:
 # --------------------------------------------------------------------------- #
 #  Resolve output dir + patient record
 # --------------------------------------------------------------------------- #
-# Write into the given dir relative to the current working directory. Under
-# Nextflow that is the task work dir, so the declared output / publishDir can
-# capture the files. (Pass '.' as the output dir and let publishDir copy.)
 os.makedirs(patient_dir, exist_ok=True)
 
 df_pat = pd.read_csv(patient_info_path)
@@ -337,8 +322,7 @@ if row.empty:
 patient_info = row.to_dict(orient='records')[0]
 
 # --------------------------------------------------------------------------- #
-#  Build context (scalars + colour-coded RichText). NOTE: findings list is
-#  NOT in the context - that table is built in Python after rendering.
+#  Build context (scalars + colour-coded RichText)
 # --------------------------------------------------------------------------- #
 DRUGS = ['Ethambutol', 'Ethionamide', 'Pyrazinamide', 'Isoniazid', 'Rifampicin',
          'Streptomycin', 'Ciprofloxacin', 'Ofloxacin', 'Moxifloxacin', 'Amikacin',
@@ -473,7 +457,7 @@ context.update({
 
 
 # --------------------------------------------------------------------------- #
-#  Detailed Findings table built in Python (no Jinja loop)
+#  Detailed Findings table
 # --------------------------------------------------------------------------- #
 def compute_qc(bam_path, bed_path, min_depth=30.0):
     """Per-amplicon mean depth + breadth of coverage from the BAM over BED regions.
@@ -626,7 +610,6 @@ def build_findings_table(doc, findings):
 # --------------------------------------------------------------------------- #
 #  Render + save
 # --------------------------------------------------------------------------- #
-# ---- coverage QC from the BED + BAM (functions are defined above) ----
 qc_summary, amplicon_qc = compute_qc(bam_arg, regions_bed, QC_MIN_DEPTH)
 if qc_summary:
     print(f"QC: {qc_summary['qc_status']} | mean depth {qc_summary['mean_depth']} | "
