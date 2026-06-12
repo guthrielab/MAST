@@ -71,8 +71,8 @@ workflow {
     // with pysam without needing to re-index inside the container.
     sorted_ch       = runSortAndIndex(align_ch)
 
-    ivartrim_ch     = runPrimerTrimming(sorted_ch, primers_txt)
-    variant_ch      = runVariantCalling(ivartrim_ch, reference)
+    primertrim_ch     = runPrimerTrimming(sorted_ch, primers_txt)
+    variant_ch      = runVariantCalling(primertrim_ch, reference)
     filtered_vcf_ch = runFilterVariants(variant_ch)
     mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
@@ -110,7 +110,7 @@ process runQualityTrimming {
 }
 
 process runAlignment {
-    container 'quay.io/biocontainers/bwa:0.7.18--h577a1d6_2'
+    container 'quay.io/biocontainers/minimap2:2.31--h118bc1c_0'
 
     input:
       tuple val(id), path(trimmed)
@@ -120,15 +120,14 @@ process runAlignment {
     script:
     """
     set -euo pipefail
-    bwa index ${reference}
 
-    bwa mem -t ${task.cpus} ${reference} quality_trimmed_${id}.fastq.gz > aligned_${id}.sam
+    minimap2 -t ${task.cpus} -a ${reference} quality_trimmed_${id}.fastq.gz > aligned_${id}.sam
 
     """
 }
 
 process runSortAndIndex {
-    container 'quay.io/biocontainers/samtools:1.18--h50ea8bc_1'
+    container 'quay.io/biocontainers/samtools:1.23.1--ha83d96e_0'
 
     input:
       tuple val(id), path(sam)
@@ -145,11 +144,9 @@ process runSortAndIndex {
 }
 
 process runPrimerTrimming {
-    container 'quay.io/biocontainers/ivar:1.4.3--h43eeafb_0'
+    container 'quay.io/biocontainers/samtools:1.23.1--ha83d96e_0'
 
     input:
-      // Accept BAI in tuple even though ivar doesn't use it, so the
-      // channel structure stays consistent through the pipeline
       tuple val(id), path(bam), path(bai)
       path(primers_txt)
     output:
@@ -157,7 +154,7 @@ process runPrimerTrimming {
     script:
     """
     set -euo pipefail
-    ivar trim -b ${primers_txt} -i ${bam} -p trimmed_${id}.bam -e
+    samtools ampliconclip -b ${primers_txt} ${bam} -o trimmed_${id}.bam
     """
 }
 
@@ -177,7 +174,7 @@ process runVariantCalling {
 }
 
 process runFilterVariants {
-    container 'quay.io/biocontainers/bcftools:1.21--h3a4d415_1'
+    container 'quay.io/biocontainers/bcftools:1.23.1--hb2cee57_0'
 
     input:
       tuple val(id), path(vcf)
