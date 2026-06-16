@@ -207,7 +207,7 @@ process runConvertToTSV {
 }
 
 process compareMutations {
-    container 'quay.io/idolawoye/mast_compare-mutations'
+    container 'quay.io/idolawoye/mast_compare-mutations:v1.1.1'
 
     publishDir "${params.outdir}", mode: 'copy'
 
