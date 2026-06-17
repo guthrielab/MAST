@@ -29,16 +29,17 @@ def helpMessage() {
 }
 
 // —— PARAMETERS ——
-params.input            = params.input            ?: 'MAST/Data/file'
-params.outdir           = params.outdir           ?: 'MAST/results'
-params.reference        = 'MAST/reference_H37RV.fasta'
-params.primers          = 'MAST/tb-amplicon-primers.bed'
-params.compare_script   = 'MAST/compare_mutations.py'
-params.mutations_csv    = 'MAST/Data/all_resistant_variants.csv'
-params.lineage_csv      = 'MAST/Data/Lineage.csv'
-params.template_docx    = 'MAST/Data/tNGS_Report_Template.docx'
-params.patient_info_csv = 'MAST/Data/patient_info.csv'
-params.regions_bed      = 'MAST/regions.bed'
+params.data_dir         = "${projectDir}/Data"
+params.input            = params.input            ?: "${params.data_dir}/file"
+params.outdir           = params.outdir           ?: "${projectDir}/results"
+params.reference        = "${projectDir}/reference_H37RV.fasta"
+params.primers          = "${projectDir}/tb-amplicon-primers.bed"
+params.compare_script   = "${projectDir}/compare_mutations.py"
+params.mutations_csv    = "${params.data_dir}/all_resistant_variants.csv"
+params.lineage_csv      = "${params.data_dir}/Lineage.csv"
+params.template_docx    = "${params.data_dir}/tNGS_Report_Template.docx"
+params.patient_info_csv = "${params.data_dir}/patient_info.csv"
+params.regions_bed      = "${projectDir}/regions.bed"
 
 workflow {
 
@@ -65,6 +66,7 @@ workflow {
 
     // —— PIPELINE STEPS ——
     qual_ch         = runQualityTrimming(reads)
+    indexed_ref     = indexReference(reference)
     align_ch        = runAlignment(qual_ch, reference)
 
     // sorted_ch emits: tuple val(id), path(bam), path(bai)
@@ -73,7 +75,7 @@ workflow {
     sorted_ch       = runSortAndIndex(align_ch)
 
     primertrim_ch     = runPrimerTrimming(sorted_ch, primers_txt)
-    variant_ch      = runVariantCalling(primertrim_ch, reference)
+    variant_ch      = runVariantCalling(primertrim_ch, indexed_ref.collect())
     filtered_vcf_ch = runFilterVariants(variant_ch)
     mutations_ch    = runConvertToTSV(filtered_vcf_ch)
 
@@ -110,6 +112,19 @@ process runQualityTrimming {
     """
 }
 
+process indexReference {
+    container 'quay.io/biocontainers/samtools:1.23.1--ha83d96e_0'
+    input:
+      path(reference)
+    output:
+      tuple path(reference), path("${reference}.fai")
+    script:
+    """
+    set -euo pipefail
+    samtools faidx ${reference}
+    """
+}
+
 process runAlignment {
     container 'quay.io/biocontainers/minimap2:2.31--h118bc1c_0'
 
@@ -117,12 +132,12 @@ process runAlignment {
       tuple val(id), path(trimmed)
       path(reference)
     output:
-      tuple val(id), path('aligned_*.sam')
+      tuple val(id), path("aligned_${id}.sam")
     script:
     """
     set -euo pipefail
 
-    minimap2 -t ${task.cpus} -a ${reference} quality_trimmed_${id}.fastq.gz > aligned_${id}.sam
+    minimap2 -t ${task.cpus} -a ${reference} ${trimmed} > aligned_${id}.sam
 
     """
 }
@@ -164,7 +179,7 @@ process runVariantCalling {
 
     input:
       tuple val(id), path(bam)
-      path(reference)
+      tuple path(reference), path(fai)
     output:
       tuple val(id), path('variants_*.vcf')
     script:
