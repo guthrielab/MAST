@@ -1,11 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-if (params.help) {
-  helpMessage()
-  exit 0
-}
-
 def helpMessage() {
   log.info """
   ====================================================
@@ -46,6 +41,12 @@ params.patient_info_csv = 'MAST/Data/patient_info.csv'
 params.regions_bed      = 'MAST/regions.bed'
 
 workflow {
+
+    if (params.help) {
+        helpMessage()
+        exit 0
+    }
+
     // —— CHANNEL SETUP ——
     primers_txt      = Channel.fromPath(params.primers).first()
     reference        = Channel.fromPath(params.reference).first()
