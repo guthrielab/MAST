@@ -22,6 +22,14 @@ from docx.table import _Row
 from docx.shared import RGBColor
 from docxtpl import DocxTemplate, RichText
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATA_DIR = os.environ.get(
+    'MAST_DATA_DIR',
+    os.path.join(SCRIPT_DIR, 'Data')
+)
+DATA_DIR = os.path.abspath(DATA_DIR)
+
 # --------------------------------------------------------------------------- #
 #  INputs
 # --------------------------------------------------------------------------- #
@@ -29,12 +37,12 @@ input_file         = sys.argv[1]
 output_base_name   = sys.argv[2]
 patient_dir        = sys.argv[3]
 fasta_file         = sys.argv[4]
-mutations_csv_path = sys.argv[5] if len(sys.argv) > 5 else '../../../MAST/Data/all_resistant_variants.csv'
-lineage_csv_path   = sys.argv[6] if len(sys.argv) > 6 else '../../../MAST/Data/Lineage.csv'
-template_path      = sys.argv[7] if len(sys.argv) > 7 else '../../../MAST/Data/tNGS_Report_Template.docx'
-patient_info_path  = sys.argv[8] if len(sys.argv) > 8 else '../../../MAST/Data/patient_info.csv'
+mutations_csv_path = sys.argv[5] if len(sys.argv) > 5 else os.path.join(DATA_DIR, 'all_resistant_variants.csv')
+lineage_csv_path   = sys.argv[6] if len(sys.argv) > 6 else os.path.join(DATA_DIR, 'Lineage.csv')
+template_path      = sys.argv[7] if len(sys.argv) > 7 else os.path.join(DATA_DIR, 'tNGS_Report_Template.docx')
+patient_info_path  = sys.argv[8] if len(sys.argv) > 8 else os.path.join(DATA_DIR, 'patient_info.csv')
 bam_arg            = sys.argv[9] if len(sys.argv) > 9 else None
-regions_bed        = sys.argv[10] if len(sys.argv) > 10 else os.environ.get('TB_REGIONS_BED', 'regions.bed')
+regions_bed        = sys.argv[10] if len(sys.argv) > 10 else os.environ.get('TB_REGIONS_BED', os.path.join(SCRIPT_DIR, 'regions.bed'))
 QC_MIN_DEPTH       = float(os.environ.get('TB_QC_DEPTH', '30'))
 
 # --------------------------------------------------------------------------- #
